@@ -1,0 +1,69 @@
+<style>
+html 
+{
+	margin: 0px;
+}
+body 
+{
+	position:absolute;
+	background-color:#F9F9F9;
+	font-family: Georgia;
+	width:100%;
+	top:0px;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+select, input, button {
+	font-size: 4vh;
+}
+input[type=checkbox] {
+    zoom:2;
+}
+#head 
+{
+    background-color:#A9A9A9;
+    border-bottom:3px solid #666666;
+    padding:0.5%;
+    padding-left: 2%;
+    padding-right: 2%;
+    margin-bottom: 2%;
+    text-align:left;
+	font-size: 3vh;
+	height:15%;
+}
+#content 
+{
+    padding-left: 2%;
+    padding-right: 2%;
+    text-align:left;
+	font-size: 4vh;
+	line-height:135%;
+}
+#login 
+{
+    text-align:center;
+	font-size: 15vh;
+}
+.home_button
+{
+	max-height:4vh;
+	max-width:4vh;
+	vertical-align:middle;
+}
+.launch_wishes
+{
+	text-align:center;
+	width:100%;
+}
+.submit_div
+{
+	text-align:center;
+	width:100%;
+    margin-top: 2%;
+    margin-bottom: 5%;
+}
+.stats
+{
+	float:right;
+}
+</style>
