@@ -9,6 +9,16 @@ if($this_user->STATUS == "ADMIN")
 { $admin_link = ' | <a href="admin.php" target="_blank">AdminCP</a>'; }
 $logout_link = '<a href="http://log:out@' . get_WEBSITE_URL() . '/">Logout</a>';
 $title = '<title>' . get_WEBSITE_NAME() . '</title>';
+if(isset($_GET["act"]) && $_GET["act"] == "show_wishes")
+{ $header = ''; }
+else
+{
+	$header = <<< EOT
+	<div id="head">
+	<a href="index.php"><img class="home_button" src="/images/home.svg" alt="home" ></a> <b>{$this_username}</b> ({$logout_link}{$admin_link})
+	<span class="stats">Karma: {$this_karma} Joker: {$this_joker}</span></div>
+EOT;
+}
 $html_output = <<< EOT
 <!DOCTYPE html>
 <head>
@@ -17,9 +27,7 @@ $html_output = <<< EOT
 <link rel="stylesheet" href="css/user_general.css">
 </head>
 <body>
-<div id="head">
-<a href="index.php"><img class="home_button" src="/images/home.svg" alt="home" ></a> <b>{$this_username}</b> ({$logout_link}{$admin_link})
-<span class="stats">Karma: {$this_karma} Joker: {$this_joker}</span></div>
+{$header}
 <div id="content">
 {$module_output}
 </div>
