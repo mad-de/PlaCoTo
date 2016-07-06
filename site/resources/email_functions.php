@@ -29,7 +29,7 @@ function fetch_email_queue()
 function send_email($receiver, $topic, $message)
 {
 $header  = 'MIME-Version: 1.0' . "\r\n";
-$header .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+$header .= 'Content-type: text/html; charset=utf-8' . "\r\n";
 $header .= 	'From: '. get_EMAIL_SENDER() . "\r\n" .
     'Reply-To: '. get_EMAIL_SENDER() . "\r\n";
 return mail($receiver, $topic, $message, $header);
