@@ -44,11 +44,21 @@ input[type=checkbox] {
     text-align:center;
 	font-size: 15vh;
 }
+#center_div
+{
+	width:100%;
+    text-align:center;
+}
 .home_button
 {
 	max-height:4vh;
 	max-width:4vh;
 	vertical-align:middle;
+}
+.user_wishes
+{
+	text-align:left;
+  display: inline-block;
 }
 .launch_wishes
 {

@@ -15,7 +15,7 @@ $timeframes = calculate_timeframes($placements);
 $deployments = fetch_placement_item($_GET["id"], "DEPLOYMENT");
 $wishlist_table = fetch_json_table('wishlist_' . $_GET["id"] . '.json');
 
-$module_output = 'Total students competing: ' . count($wishlist_table) . '<br /><br />'; 
+$module_output = '<div id="center_div"><div class="user_wishes">Total students competing: ' . count($wishlist_table) . '<br /><br />'; 
 
 foreach($deployments as $deployment)
 {
@@ -67,4 +67,5 @@ foreach($deployments as $deployment)
 	}
 	$module_output .= '<br />';	
 }
+$module_output .= '</div></div>';
 ?>
