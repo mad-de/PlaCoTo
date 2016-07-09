@@ -429,7 +429,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		// use pointers for iterations
 		$i_placements = return_placements($placements);
 		$i_placement_student = return_students($placement_student);
-
+		
 		// Sort placements randomly
 		usort($i_placements, "sort_random");
 
@@ -493,11 +493,12 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 					{
 						foreach($current_student_array as $current_student)
 						{
-							if(in_array($key, $current_student->deployment_deduction[$deployment]))
+							if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
 							{
 								$iteration_output[$iterations] .= '<br /><i>ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '</i>';
 								$current_student->karma = ($current_student->karma + get_BONUS_ROLL_PLACEMENT());
-								unset($current_student->deployment_deduction[$deployment][$key]);
+								unset($current_student->deployment_deduction[$current_placement->deployment][$key]);
+								print "unsetting" . $current_placement->deployment;
 							}
 						}
 					}
@@ -519,14 +520,14 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						{
 							if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
 							{
-								if(in_array($key, $current_student->deployment_deduction[$deployment]))
+								if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
 								{
 									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
 									$current_student->karma = ($current_student->karma + get_DEDUCTION_ROLL_PLACEMENT());
 								}
 								else
 								{							
-									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
+									$iteration_output[$iterations] .= '; He already got a karma bonus in this round. His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
 									$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
 								}	
 								$iteration_output[$iterations] .= '; ';
@@ -558,9 +559,17 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 									// Reduce karma points							
 									if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
 									{
-										$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
-										$current_student->karma = ($current_student_array[$i]->karma + get_DEDUCTION_ROLL_PLACEMENT());
-									}
+										if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
+											{
+												$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
+												$current_student->karma = ($current_student->karma + get_DEDUCTION_ROLL_PLACEMENT());
+											}
+											else
+											{							
+												$iteration_output[$iterations] .= '; He already got a karma bonus in this round. His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
+												$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
+											}	
+										}
 								}
 								// Allocate student
 								$current_placement->students_alloc[] = $current_student->id;
@@ -573,11 +582,11 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						$iteration_output[$iterations] .= '<i><br />ID:' . $current_student_array[$i]->id . ' rolled the dice with a karma of ' . $current_student_array[$i]->karma .  '. He was unsuccesful with ' . $current_student_array[$i]->calc_luck . ' points. Sorry, mate.';
 						if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
 							{
-								if(in_array($key, $current_student_array[$i]->deployment_deduction[$deployment]))
+								if(in_array($key, $current_student_array[$i]->deployment_deduction[$current_placement->deployment]))
 								{
 									$iteration_output[$iterations] .= ' But he will get a Karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '; ';
 									$current_student_array[$i]->karma = ($current_student_array[$i]->karma + get_BONUS_ROLL_PLACEMENT());
-									unset($current_student_array[$i]->deployment_deduction[$deployment][$key]);
+									unset($current_student_array[$i]->deployment_deduction[$current_placement->deployment][$key]);
 								}	
 							}
 						$iteration_output[$iterations] .= '</i>';
