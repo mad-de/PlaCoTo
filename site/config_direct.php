@@ -3,6 +3,11 @@
 // Specify Database path (should be hidden from your users)
 define("DB_PATH", "../database");
 // Leave public key empty if you don`t want to use a Recaptcha Captcha
+define("RECAPTCHA_SECRET_KEY", "");
+define("RECAPTCHA_PUBLIC_KEY", "");
+define("WEBSITE_NAME", "Placoto");
+define("WEBSITE_URL", "example.com");
+define("EMAIL_SENDER", "mail@example.com");
 define("COSTUM_TIMEFRAME_MAX", 7);
 
 define("DEDUCTION_ROLL_PLACEMENT", -1);
