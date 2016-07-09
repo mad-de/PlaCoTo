@@ -14,6 +14,7 @@ class student
   var $karma;
   var $joker;
   public $deployments = array();
+  public $deployment_deduction = array();
   public $timeframes_unavailable = array();
 }
 
@@ -25,6 +26,7 @@ class comp_student
   var $used_joker;
   public $timeframes_unavailable = array();
   public $deployments = array();
+  public $deployment_deduction = array();
   var $calc_luck;
 }
 
@@ -65,6 +67,13 @@ function return_students($array)
 		$students[$i] -> email = $orig_student -> email;
 		$students[$i] -> name = $orig_student -> name;
 		$students[$i] -> deployments = $orig_student -> deployments;
+		$deployment_deduction = array();
+		foreach($students[$i]->deployments as $deployment => $value)
+		{
+			$deployment_deduction[$deployment] = new stdClass();
+			$deployment_deduction[$deployment] = get_PRIORITIES_AFFECTING_KARMA();
+		}
+		$students[$i] -> deployment_deduction = $deployment_deduction;
 		$students[$i] -> timeframes_unavailable = $orig_student -> timeframes_unavailable;
 		$i++;
 	}
@@ -462,11 +471,12 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						$current_student_array[$current_student_count]->joker = &$current_student->joker;
 						$current_student_array[$current_student_count]->timeframes_unavailable = &$current_student->timeframes_unavailable;
 						$current_student_array[$current_student_count]->deployments = &$current_student->deployments;
+						$current_student_array[$current_student_count]->deployment_deduction = &$current_student->deployment_deduction;
 						$current_student_array[$current_student_count]->karma = &$current_student->karma;
 						$current_student_count = $current_student_count + 1;
 					}
 				}
-				$iteration_output[$iterations] .= $current_placement->name . '. Time: ' . timestamp_to_german_date($report_placement->timeframe_begin). '-' . timestamp_to_german_date($report_placement->timeframe_end) . '; Available places: ' . $places_target;
+				$iteration_output[$iterations] .= $current_placement->name . '. Time: ' . timestamp_to_german_date($current_placement->timeframe_begin). '-' . timestamp_to_german_date($current_placement->timeframe_end) . '; Available places: ' . $places_target;
 				$iteration_output[$iterations] .= '; with ' . count($current_student_array) . ' Students eligable: ';
 				foreach($current_student_array as $report_student)
 				{
@@ -483,8 +493,12 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 					{
 						foreach($current_student_array as $current_student)
 						{
-							$iteration_output[$iterations] .= '<br /><i>ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '</i>';
-							$current_student->karma = ($current_student_array[$i]->karma + get_DEDUCTION_ROLL_PLACEMENT());
+							if(in_array($key, $current_student->deployment_deduction[$deployment]))
+							{
+								$iteration_output[$iterations] .= '<br /><i>ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '</i>';
+								$current_student->karma = ($current_student->karma + get_BONUS_ROLL_PLACEMENT());
+								unset($current_student->deployment_deduction[$deployment][$key]);
+							}
 						}
 					}
 				}		
@@ -500,8 +514,24 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						$current_placement->students_alloc[] = $current_student->id;
 						if(!($key == (count($priority_types) - 2) || $key == (count($priority_types) - 1)))
 						{ $this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10)); }
-						if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' <i>. He used a Joker in this round. So his Joker will be subtracted. Goodbye, Joker!</i>'; }
-						$iteration_output[$iterations] .=  ';';
+						if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' <i>. He used a Joker in this round. So his Joker will be subtracted. Goodbye, Joker!;</i> '; }
+						else
+						{
+							if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+							{
+								if(in_array($key, $current_student->deployment_deduction[$deployment]))
+								{
+									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
+									$current_student->karma = ($current_student->karma + get_DEDUCTION_ROLL_PLACEMENT());
+								}
+								else
+								{							
+									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
+									$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
+								}	
+								$iteration_output[$iterations] .= '; ';
+							}
+						}
 					}
 				}
 				else
@@ -520,15 +550,18 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 							{
 								unset($current_student->deployments[$current_placement->deployment]);
 								$current_student->timeframes_unavailable[] = $current_placement->timeframe_begin . '::' . $current_placement->timeframe_end;
-								// Reduce karma points
-								if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
-								{
-									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
-									$current_student->karma = ($current_student_array[$i]->karma + get_DEDUCTION_ROLL_PLACEMENT());
-									$this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10));
-								}
+								$this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10));
 								// Reduce joker
 								if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' (used a Joker in this round. So his Joker will be subtracted)'; }
+								else
+								{
+									// Reduce karma points							
+									if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+									{
+										$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
+										$current_student->karma = ($current_student_array[$i]->karma + get_DEDUCTION_ROLL_PLACEMENT());
+									}
+								}
 								// Allocate student
 								$current_placement->students_alloc[] = $current_student->id;
 								$iteration_output[$iterations] .=  ';</i>';
@@ -540,8 +573,12 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						$iteration_output[$iterations] .= '<i><br />ID:' . $current_student_array[$i]->id . ' rolled the dice with a karma of ' . $current_student_array[$i]->karma .  '. He was unsuccesful with ' . $current_student_array[$i]->calc_luck . ' points. Sorry, mate.';
 						if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
 							{
-								$iteration_output[$iterations] .= ' But he will get a Karma bonus of ' . get_BONUS_ROLL_PLACEMENT();
-								$current_student_array[$i]->karma = ($current_student_array[$i]->karma + get_BONUS_ROLL_PLACEMENT());
+								if(in_array($key, $current_student_array[$i]->deployment_deduction[$deployment]))
+								{
+									$iteration_output[$iterations] .= ' But he will get a Karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '; ';
+									$current_student_array[$i]->karma = ($current_student_array[$i]->karma + get_BONUS_ROLL_PLACEMENT());
+									unset($current_student_array[$i]->deployment_deduction[$deployment][$key]);
+								}	
 							}
 						$iteration_output[$iterations] .= '</i>';
 						$i++;
@@ -549,8 +586,8 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 				}
 				if(!($this_round_happiness == 0))
 				{
-					$iteration_output[$iterations] .= '<br /><i>The overall happiness has increased by ' . $this_round_happiness . ' in this round</i>';
 					$i_overall_happiness = ($i_overall_happiness + $this_round_happiness);
+					$iteration_output[$iterations] .= '<br /><i>The overall happiness has increased by ' . $this_round_happiness . ' in this round and is now ' . $i_overall_happiness . '</i>';
 				}
 				$iteration_output[$iterations] .= '<br />';
 			} 
