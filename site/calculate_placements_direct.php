@@ -74,14 +74,14 @@ if(empty($result_table->unallocated_students) && empty($result_table->unallocate
 	$result_table->report_output .= "<br /><br />Step 6: Replacing the old students table with the new one & Sending emails to students."; 
 	print date('d.m.Y-H:i:s:', time()) . " Saving updated students.json<br />";
 	file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'students.json', json_encode($students_by_id)) or die("Replacing the old students table FAILED.");  
-	//inform_students_via_email($result_table->students, $students_by_id, $result_table->placements, $placement_name, $report_file) or $result_table->report_output .= " ERROR informing students via email."; 
+	inform_students_via_email($result_table->students, $students_by_id, $result_table->placements, $placement_name, $report_file) or $result_table->report_output .= " ERROR informing students via email."; 
 }
 else
 {
 	$result_table->report_output .= "<br />There were errors while calculating. I will save a copy of the calculated students table in the calculation folder without replacing the stundents database.<br />";
 	print date('d.m.Y-H:i:s:', time()) . " Errors calculating - Sending emails to admins<br />";
 	insert_calculation_file($placement_id, "students_new", $students_by_id) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the students file. :("; 
-	//send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
+	send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
 }			
 
 $time_end = microtime(true) - $time_begin; 
