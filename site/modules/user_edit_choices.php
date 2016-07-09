@@ -72,29 +72,30 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 			$submitted_deployments = array();
 			foreach($deployments as $deployment)
 			{
-				if(isset($_POST['deploy_' . $deployment]))
+				$deployment_rm_whitespace = str_replace(" ", "_", $deployment);
+				if(isset($_POST['deploy_' . $deployment_rm_whitespace]))
 				{
 					check_post_special_chars($_POST['deploy_' . $deployment]) or die("Critical error reading the deployment input");
 					$email_output .= "<br />You are enrolled for deployment " . $deployment . ". Your wishes:<br />";
 					$submitted_deployments[$deployment] = new stdClass();
 					// JOKER
-					if(isset($_POST[$deployment . '::joker']))
+					if(isset($_POST[$deployment_rm_whitespace . '::joker']))
 					{
-						check_post_special_chars($_POST[$deployment . '::joker']) or die("Critical error reading the joker input");
-						$submitted_deployments[$deployment]->$joker_key_num = $_POST[$deployment . '::joker'];
-						$joker_placement = fetch_placement_by_id($_GET["id"], $_POST[$deployment . '::joker']);
-						$email_output .= "You used a Joker for " . $joker_placement->NAME . " (" . timestamp_to_german_date($joker_placement->TIMEFRAME_BEGIN) . " - " . timestamp_to_german_date($joker_placement->TIMEFRAME_END) . ")<br />";
+						check_post_special_chars($_POST[$deployment_rm_whitespace . '::joker']) or die("Critical error reading the joker input");
+						$submitted_deployments[$deployment]->$joker_key_num = $_POST[$deployment_rm_whitespace . '::joker'];
+						$joker_placement = fetch_placement_by_id($_GET["id"], $_POST[$deployment_rm_whitespace . '::joker']);
+						if(!empty($_POST[$deployment_rm_whitespace . '::joker'])) { $email_output .= "You used a Joker for " . $joker_placement->NAME . " (" . timestamp_to_german_date($joker_placement->TIMEFRAME_BEGIN) . " - " . timestamp_to_german_date($joker_placement->TIMEFRAME_END) . ")<br />"; }
 					}
 					foreach($priority_types as $key => $value)
 					{
-						check_post_special_chars($_POST[$key .  '::' . $deployment]) or die("Critical error reading the " . $value . " priorities input");						
-						if(!empty($_POST[$key .  '::' . $deployment])) { $email_output .= "Your " . $value . " is " . $_POST[$key .  '::' . $deployment] . "<br />"; }
-						$submitted_deployments[$deployment]->$key = $_POST[$key .  '::' . $deployment];	
+						check_post_special_chars($_POST[$key .  '::' . $deployment_rm_whitespace]) or die("Critical error reading the " . $value . " priorities input");						
+						if(!empty($_POST[$key .  '::' . $deployment_rm_whitespace])) { $email_output .= "Your " . $value . " is " . $_POST[$key .  '::' . $deployment_rm_whitespace] . "<br />"; }
+						$submitted_deployments[$deployment]->$key = $_POST[$key .  '::' . $deployment_rm_whitespace];	
 					}
 					// Locations
-					check_post_special_chars($_POST[$location_key_num . '::' . $deployment . '::location']) or die("Critical error reading the joker input");
-					$submitted_deployments[$deployment]->$location_key_num = $_POST[$location_key_num . '::' . $deployment . '::location'];
-					if(!empty($_POST[$location_key_num . '::' . $deployment . '::location'])) { $email_output .= "Your preferred locations is " . $_POST[$location_key_num . '::' . $deployment . '::location'] . "<br />"; }
+					check_post_special_chars($_POST[$location_key_num . '::' . $deployment_rm_whitespace . '::location']) or die("Critical error reading the joker input");
+					$submitted_deployments[$deployment]->$location_key_num = $_POST[$location_key_num . '::' . $deployment_rm_whitespace . '::location'];
+					if(!empty($_POST[$location_key_num . '::' . $deployment_rm_whitespace . '::location'])) { $email_output .= "Your preferred locations is " . $_POST[$location_key_num . '::' . $deployment_rm_whitespace . '::location'] . "<br />"; }
 				}
 			}
 			insert_wishes($this_student->ID, $_GET["id"], $submitted_deployments, $submit_custom_timeframe_unavailable,  $submit_timeframes_unavailable);
@@ -149,13 +150,14 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 				if(array_key_exists($deployment, $user_wishes->DEPLOYMENTS) || in_array($deployment, $user_wishes->DEPLOYMENTS))
 				{ $checked = 'checked="checked"'; }
 				else { $checked = ""; }
-				$deployment_output .= '<input type="checkbox" name="deploy_' . $deployment . '" value="TRUE" ' . $checked . '>' . $deployment . '<br />';
+				$deployment_rm_whitespace = str_replace(" ", "_", $deployment);
+				$deployment_output .= '<input type="checkbox" name="deploy_' . $deployment_rm_whitespace . '" value="TRUE" ' . $checked . '>' . $deployment . '<br />';
 				$priorities_output .= '<br /><b>' . $deployment . '</b>';
 
 				// JOKER
 				if(!($this_student->JOKER == 0))
 				{
-					$joker_options =  '<label for="joker">JOKER (use wisely): <select name="' . $deployment . '::joker"  style="color:red"><option value="">NONE</option>';
+					$joker_options =  '<label for="joker">JOKER (use wisely): <select name="' . $deployment_rm_whitespace . '::joker"  style="color:red"><option value="">NONE</option>';
 					foreach($placements as $placement)
 					{
 						if($placement->DEPLOYMENT == $deployment)
@@ -197,10 +199,10 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 							$used_placements_count++;	
 						}
 					}
-					$priorities_output .= '<br />' . $value . ': <select name="' . $key . '::' . $deployment . '">' . $deployment_options . '</select>';
+					$priorities_output .= '<br />' . $value . ': <select name="' . $key . '::' . $deployment_rm_whitespace . '">' . $deployment_options . '</select>';
 				}
 				// LOCATION
-				$location_options =  '<label for="location">Location preference: <select name="' . $location_key_num . '::' . $deployment . '::location"><option value="" >NONE</option>';
+				$location_options =  '<label for="location">Location preference: <select name="' . $location_key_num . '::' . $deployment_rm_whitespace . '::location"><option value="" >NONE</option>';
 				$locations = fetch_placement_item($_GET["id"], "LOCATION");
 				//create array to register what locations we already have in our list
 				$used_locations = array();

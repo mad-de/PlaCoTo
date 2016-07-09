@@ -8,7 +8,6 @@ include "resources/json_functions.php";
 
 $time_begin = microtime(true);
 print date('d.m.Y-H:i:s:', time()) . ' Starting script.<br />';
-
 $placement_list = fetch_placement_list();
 // fetch !1! placement - assume last one in database gets calculated first
 if(empty($placement_list))
@@ -47,18 +46,19 @@ array_unshift($priority_types, "JOKER");
 $priority_types[] = "LOCATION";
 
 $multiplied_iteration = array();
-for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(); $iteration_multiplier >= $i; $i++)
+for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(), $chunk_output = ""; $iteration_multiplier >= $i && (!(microtime(true) > ($time_begin + get_MAX_RUNTIME())) || get_MAX_RUNTIME() == 0); $i++)
 {	
-	print date('d.m.Y-H:i:s:', time()) . " Begin chunk " . $i . " (chunk size: " . get_ITERATIONS();
+	print date('d.m.Y-H:i:s:', time()) . " Begin chunk " . $i . " (chunk size: " . get_ITERATIONS() . ")<br />";
 	$multiplied_iteration[$i] = calculate_placements($placement_student, $placements, $priority_types, $i); 
-	print ") Max happiness: " . $multiplied_iteration[$i]->overall_happiness . "<br />";
+	$chunk_output .= '<br />Chunk ' . $i . ' with ' . get_ITERATIONS() . ' iterations. Happiness maximum: ' . $multiplied_iteration[$i]->overall_happiness;
 }
 $result_table = check_chunks($multiplied_iteration);
+$result_table->report_output .= '<br /><br />Step 4: Find chunk with highest happiness iteration:' . $chunk_output;
 
 $students_by_id = sort_students_by_id($student_table);
 $result_table->placements = replace_id_with_name($result_table->placements, $students_by_id);
 
-$result_table->report_output .= '<br /><br />Step 4: I will upload the calculated placements file for your convenience: <a href="http://' . $_SERVER['HTTP_HOST'] . '/index.php?act=data_export&id=' . $placement_id . '">Download xls</a>';
+$result_table->report_output .= '<br /><br />Step 5: I will upload the calculated placements file for your convenience: <a href="http://' . $_SERVER['HTTP_HOST'] . '/index.php?act=data_export&id=' . $placement_id . '">Download xls</a>';
 insert_calculation_file($placement_id, "placements", $result_table) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the placement file. :(";
 
 // Insert Joker and Karma + Joker values into students table
@@ -72,7 +72,7 @@ $report_file = 'reports' . DIRECTORY_SEPARATOR . 'report_' . $placement_id . '.h
 
 if(empty($result_table->unallocated_students) && empty($result_table->unallocated_min_places))
 {
-	$result_table->report_output .= "<br /><br />Step 5: Replacing the old students table with the new one & Sending emails to students."; 
+	$result_table->report_output .= "<br /><br />Step 6: Replacing the old students table with the new one & Sending emails to students."; 
 	print date('d.m.Y-H:i:s:', time()) . " Saving updated students.json<br />";
 	file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'students.json', json_encode($students_by_id)) or die("Replacing the old students table FAILED.");  
 	inform_students_via_email($result_table->students, $students_by_id, $result_table->placements, $placement_name, $report_file) or $result_table->report_output .= " ERROR informing students via email."; 
@@ -86,7 +86,6 @@ else
 }			
 
 $time_end = microtime(true) - $time_begin; 
-$result_table->report_output .= '<br /><br /><b>RESULTS:</b>' . result_placement_report($result_table->placements) . '<br /><br /><b>Ok, that`s all. I`m done for today.</b> Calculation took ' . $time_end . ' Seconds';
-
+$result_table->report_output .= '<br /><br /><b>RESULTS:</b>' . result_placement_report($result_table->placements) . '<br /><br />A total of ' . (($i - 1) * get_ITERATIONS()) . ' iterations have been calculated.<br /><b>Ok, that`s all. I`m done for today.</b> Calculation took ' . $time_end . ' Seconds';
 upload_report($result_table->report_output, $result_table->iteration_output, $report_file);
 ?>

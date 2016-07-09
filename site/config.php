@@ -14,6 +14,7 @@ define("DEDUCTION_ROLL_PLACEMENT", -1);
 define("DEDUCTION_CUSTOM_TIMEFRAME", -2);
 define("BONUS_REMAINING_ROUND", +3);
 
+define("MAX_RUNTIME", 55);
 define("ITERATIONS", 500);
 define("ITERATION_MULTIPLIER", 5);
 
@@ -35,6 +36,7 @@ function get_COSTUM_TIMEFRAME_MAX() { return COSTUM_TIMEFRAME_MAX; }
 function get_DEDUCTION_ROLL_PLACEMENT() { return DEDUCTION_ROLL_PLACEMENT; }
 function get_DEDUCTION_CUSTOM_TIMEFRAME() { return DEDUCTION_CUSTOM_TIMEFRAME; }
 function get_BONUS_REMAINING_ROUND() { return BONUS_REMAINING_ROUND; }
+function get_MAX_RUNTIME() { return (MAX_RUNTIME * 1000); }
 function get_ITERATIONS() { return ITERATIONS; }
 function get_ITERATION_MULTIPLIER() { return ITERATION_MULTIPLIER; }
 function get_EMAIL_SPECIAL_CHARS() { return unserialize(EMAIL_SPECIAL_CHARS); }

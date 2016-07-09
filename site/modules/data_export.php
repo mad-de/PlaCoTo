@@ -62,11 +62,15 @@ if(is_dir(get_DB_PATH() . DIRECTORY_SEPARATOR . 'calculation_' . $_GET["id"] . D
 		{
 			if(!(empty($placements["students_alloc"][$i])))
 			{
-				$xls_output .= $placements["students_alloc"][$i] . "\t";			
+				$xls_output .= ($i + 1) . ". " . $placements["students_alloc"][$i] . "\t";			
+			}
+			elseif(($i + 1) <= $placements["places_max"])
+			{
+				$xls_output .= ($i + 1) . " . \t";
 			}
 			else
 			{
-				$xls_output .= "\t";
+				$xls_output .= "\t";				
 			}
 		}
 		$xls_output .= "\r\n";

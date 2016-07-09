@@ -9,43 +9,29 @@ if(!isset($_GET["step"]))
 		$output_edit_placements = 'Placements in Placement_list' . $_GET["id"] . '<br />';
 	
 		$output_edit_placements .= '<form action="admin.php?act=edit_placements&id=' . $_GET["id"] . '&step=submit" method="POST" autocomplete="off">';
-	
+		$output_edit_placements .= '<table><tr><th>ID</th><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>BEGIN</th><th>END</th><th>MIN</th><th>MAX</th><th>DELETE</th></tr>';
 		$count = 0;
 		foreach($placements as $placement)
 		{
 			$begin = timestamp_to_german_date($placement->TIMEFRAME_BEGIN);
 			$end = timestamp_to_german_date($placement->TIMEFRAME_END);
 			$output_edit_placements .= <<< EOT
-		<input id="name" name="{$count}::id" type="hidden" value="{$placement->ID}">
-	      <label for="name">ID: {$placement->ID} Name:
-		<input id="name" name="{$count}::name" value="{$placement->NAME}">
-	      </label>
-	      <label for="deployment">DEPLOYMENT:
-		<input id="deployment" name="{$count}::deployment" value="{$placement->DEPLOYMENT}">
-	      </label>
-	      <label for="deployment">LOCATION:
-		<input id="deployment" name="{$count}::location" value="{$placement->LOCATION}">
-	      </label>
-	      <label for="timeframe_begin">Begin:
-		<input id="timeframe_begin" name="{$count}::timeframe_begin" value="{$begin}">
-	      </label>	 
-	      <label for="timeframe_end">End:
-		<input id="timeframe_end" name="{$count}::timeframe_end" value="{$end}">
-	      </label>	 
-	      <label for="places_min">Places (min):
-		<input id="places_min" name="{$count}::places_min" value="{$placement->PLACES_MIN}">
-	      </label>	 
-	      <label for="places_min">Places (max):
-		<input id="places_max" name="{$count}::places_max" value="{$placement->PLACES_MAX}">
-	      </label>	 
-		<a href="admin.php?act=edit_placements&step=delete_placement&id={$_GET["id"]}&delete_id={$placement->ID}" />Delete Placement</a> 
-	<br />
+		  <tr><td><input id="name" name="{$count}::id" type="hidden" value="{$placement->ID}">{$placement->ID}</td>
+	      <td><input id="name" name="{$count}::name" value="{$placement->NAME}"></td>
+	      <td><input id="deployment" name="{$count}::deployment" value="{$placement->DEPLOYMENT}" size="9"></td>
+	      <td><input id="deployment" name="{$count}::location" value="{$placement->LOCATION}" size="7"></td>
+	      <td><input id="timeframe_begin" name="{$count}::timeframe_begin" value="{$begin}" size="7"></td>	 
+	      <td><input id="timeframe_end" name="{$count}::timeframe_end" value="{$end}" size="7"></td>	 
+	      <td><input id="places_min" name="{$count}::places_min" value="{$placement->PLACES_MIN}" size="2"></td>	 
+	      <td><input id="places_max" name="{$count}::places_max" value="{$placement->PLACES_MAX}" size="2"></td>	 
+		<td><a href="admin.php?act=edit_placements&step=delete_placement&id={$_GET["id"]}&delete_id={$placement->ID}" />Delete Placement</a></td> 
+	</tr>
 EOT;
 	$count++;
 	}
 	$count--;
 	$output_edit_placements .= <<< EOT
-		<input id="name" name="total_num" type="hidden" value="{$count}">
+		<input id="name" name="total_num" type="hidden" value="{$count}"></table>
 			<a href="admin.php?act=add_placements&id={$_GET["id"]}" />Add placements</a><br />
 		   <button type="submit">Submit</button>
 	</form>

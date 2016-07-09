@@ -15,12 +15,19 @@ $timeframes = calculate_timeframes($placements);
 $deployments = fetch_placement_item($_GET["id"], "DEPLOYMENT");
 $wishlist_table = fetch_json_table('wishlist_' . $_GET["id"] . '.json');
 
-$module_output = '<div id="center_div"><div class="user_wishes">Total students competing: ' . count($wishlist_table) . '<br /><br />'; 
+$module_output = '<div id="center_div"><div class="user_wishes">Total students enrolled: ' . count($wishlist_table) . '<br /><br />'; 
 
 foreach($deployments as $deployment)
 {
-	$module_output .= '<b>' . $deployment . '</b><br />';
+	$deployment_applications_count = 0;
+	$module_output .= '<b>' . $deployment . '</b>';
 	$placements_for_deployment = array();
+	// count users having this deployment
+	foreach($wishlist_table as $user)
+	{
+		if(array_key_exists($deployment, $user['DEPLOYMENTS']))
+		{ $deployment_applications_count++; }
+	}	
 	foreach($placements as $placement)
 	{
 		// Generate place if not set yet;
@@ -61,11 +68,15 @@ foreach($deployments as $deployment)
 			}
 		}
 	}
+	$placements_output = "";
+	$deployment_max_places = 0;
 	foreach($placements_for_deployment as $this_placement)
 	{
-		$module_output .= $this_placement->name . ' (' . $this_placement->places_wish . '/' . $this_placement->places_max . ')<br />';
+		$deployment_max_places = $deployment_max_places + $this_placement->places_max;
+		$placements_output .= $this_placement->name . ' (' . $this_placement->places_wish . '/' . $this_placement->places_max . ')<br />';
 	}
-	$module_output .= '<br />';	
+	$module_output .= '</b> (' . $deployment_applications_count . ' students / ' . $deployment_max_places . ' places)<br />';
+	$module_output .= $placements_output .'<br />';	
 }
 $module_output .= '</div></div>';
 ?>
