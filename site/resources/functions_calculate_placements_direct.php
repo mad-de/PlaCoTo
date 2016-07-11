@@ -41,13 +41,19 @@ class placement
   var $places_max;
   public $students_alloc = array();
 }
+class deployment
+{
+  public $placements = array();
+}
 
 class iteration_describer
 {
   var $id;
   var $overall_happiness;
   public $unallocated_students = array();
+  var $num_unallocated_students;
   public $unallocated_min_places = array();
+  var $num_unallocated_min_places;
   public $students = array();
   public $placements = array();
   var $report_output;
@@ -315,6 +321,23 @@ function sort_students_by_id($student_table)
 	{ $students_by_id[$this_student["ID"]] = $this_student; }
 	return $students_by_id;
 }
+function set_first_priority_for_no_choice_deployments($deployment_placements, $placement_student)
+{
+	foreach($deployment_placements as $deployment_placement => $value)
+	{
+		if(count($value->placements) == 1)
+		{
+			foreach($placement_student as $current_student)
+			{
+				if(isset($current_student->deployments[$deployment_placement]))
+				{
+					$current_student->deployments[$deployment_placement][1] = $value->placements[0];
+				}
+			}
+		}
+	}
+	return $placement_student;
+}
 function replace_id_with_name($placements, $students_by_id)
 {
 	// sort them randomly to make it harder to backtrace student IDs
@@ -349,10 +372,23 @@ function result_placement_report($placements)
 	}
 	return $report;
 }		
+function return_placement_deployments($deployments, $placements)
+{
+	foreach($deployments as $deployment)
+	{
+		$deployment_placements[$deployment] = new deployment;
+		foreach($placements as $placement)
+		{
+			if($placement->deployment == $deployment && !in_array($placement->name ,$deployment_placements[$deployment]->placements))
+			{ $deployment_placements[$deployment] -> placements[] = $placement->name; }
+		}
+	}
+	return $deployment_placements;
+}
 function calculate_chunk($placement_student, $placements, $priority_types, $chunk_num)
 {
-	// Initialize some vars
 	$deployments = filter_deployments($placements);
+	$deployment_placements = return_placement_deployments($deployments, $placements);
 	$report_output = '<h1>Report (Start: ' . date('d.m.Y-H:i:s', time()) . ')</h1>';
 
 	// Report wishlist
@@ -489,7 +525,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 				elseif(($places_target < 1) || ($current_placement->places_max == 0))
 				{ 
 					$iteration_output[$iterations] .= '<br />But there are no placements open. Sorry guys!';
-					if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+					if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->name]->placements) == 1))
 					{
 						foreach($current_student_array as $current_student)
 						{
@@ -518,7 +554,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' <i>. He used a Joker in this round. So his Joker will be subtracted. Goodbye, Joker!;</i> '; }
 						else
 						{
-							if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+							if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->name]->placements) == 1))
 							{
 								if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
 								{
@@ -557,7 +593,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 								else
 								{
 									// Reduce karma points							
-									if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+									if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->name]->placements) == 1))
 									{
 										if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
 											{
@@ -580,7 +616,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 					while(count($current_student_array) > $i)
 					{
 						$iteration_output[$iterations] .= '<i><br />ID:' . $current_student_array[$i]->id . ' rolled the dice with a karma of ' . $current_student_array[$i]->karma .  '. He was unsuccesful with ' . $current_student_array[$i]->calc_luck . ' points. Sorry, mate.';
-						if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()))
+						if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->name]->placements) == 1))
 							{
 								if(in_array($key, $current_student_array[$i]->deployment_deduction[$current_placement->deployment]))
 								{
@@ -634,7 +670,11 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 				}
 			}
 		}
-		if($i_missing_placements) { $iteration_output[$iterations] .= $i_missing_placements_output; }
+		if($i_missing_placements) 
+		{
+			$iteration_describer[$iterations] -> num_unallocated_students = count($iteration_describer[$iterations]->unallocated_students);
+			$iteration_output[$iterations] .= $i_missing_placements_output; 
+		}
 		
 		// Missing min_places
 		$i_missing_min_places_output = '<br /><br /><b><u>Warning:</u> Placements with unallocated minumum places:</b><br />';
@@ -648,7 +688,11 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 				$i_missing_min_places_output .= $this_i_placement->name . ' (' . timestamp_to_german_date($this_i_placement->timeframe_begin) . '-' . timestamp_to_german_date($this_i_placement->timeframe_end) . ') is missing ' . ($this_i_placement->places_min - count($this_i_placement->students_alloc)) . ' students.<br />';
 			}
 		}
-		if($i_missing_min_places) { $iteration_output[$iterations] .= $i_missing_min_places_output; }	
+		if($i_missing_min_places) 
+		{ 
+			$iteration_output[$iterations] .= $i_missing_min_places_output; 
+			$iteration_describer[$iterations] -> num_unallocated_min_places = count($iteration_describer[$iterations]->unallocated_min_places);
+		}	
 		
 		$iteration_output[$iterations] .= '<br />The overall happiness is: ' . $i_overall_happiness;
 		
@@ -671,12 +715,21 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		foreach($iteration_describer as $iteration => $value)
 		{ if(!(empty($value->unallocated_students))) { $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); } }
 	}
-	else { $report_output .= "<b>HOOOMANZ!</b> I haven't been able to calculate a table, where all students are allocated. :("; }
+	else 
+	{ 
+		$report_output .= "<b>HOOOMANZ!</b> I haven't been able to calculate a table, where all students are allocated. :(. Removing iterations with more than minimal unallocated students. "; 
+		$minimal_unallocated_students = min(return_array_by_key($iteration_describer, "unallocated_students"));
+		foreach($iteration_describer as $iteration => $value)
+		{
+			if( $value->unallocated_students > $minimal_unallocated_students)
+			{ $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); }
+		}	
+	}
 
 	// Check if there is a calculation where all minimum places are allocated
 	$report_output .= "<br /><br />Step 2: I'll try to come up with a table, where all minimum placements are allocated.<br />";
 	$calc_min_places_allocated = FALSE;
-	foreach($iteration_describer as $iteration) { if(empty($iteration->unallocated_min_places)) { $calc_min_places_allocated = TRUE; } }
+	foreach($iteration_describer as $iteration) { if(empty($iteration->unallocated_min_places)) { $calc_min_places_allocated = TRUE;  } }
 	// if there is such a calculation, remove all others
 	if($calc_min_places_allocated)
 	{
@@ -684,7 +737,16 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		foreach($iteration_describer as $iteration => $value)
 		{ if(!(empty($value->unallocated_min_places))) { $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); } }
 	}
-	else { $report_output .= "<b>HOOOMANZ!</b> I haven`t been able to calculate a table, where all minimum places are allocated. :("; }
+	else 
+	{ 
+		$report_output .= "<b>HOOOMANZ!</b> I haven`t been able to calculate a table, where all minimum places are allocated. :(. Deleting all iterations with more than the minimum unallocated students: "; 
+		$minimal_unallocated_min_places = min(return_array_by_key($iteration_describer, "unallocated_min_places"));
+		foreach($iteration_describer as $iteration => $value)
+		{
+			if( $value->unallocated_min_places > $minimal_unallocated_min_places)
+			{ $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); }
+		}
+	}
 
 	// Step 3 order by happiness factor
 	$report_output .= "<br /><br />Step 3: I'll select the table with the highest happiness factor.<br />";
@@ -707,8 +769,17 @@ function check_chunks($multiplied_iteration)
 	if($calc_all_allocated)
 	{
 		foreach($multiplied_iteration as $iteration => $value)
-		{ if(!(empty($value->unallocated_students))) { $report_output .= $value->id . '; '; unset($multiplied_iteration[$iteration]); } }
+		{ if(!(empty($value->unallocated_students))) { unset($multiplied_iteration[$iteration]); } }
 	}
+	else
+	{
+		$minimal_unallocated_students = min(return_array_by_key($multiplied_iteration, "unallocated_students"));
+		foreach($multiplied_iteration as $iteration => $value)
+		{
+			if( $value->unallocated_students > $minimal_unallocated_students)
+			{ unset($multiplied_iteration[$iteration]); }
+		}
+	}		
 
 	// Check if there is a calculation where all minimum places are allocated
 	$calc_min_places_allocated = FALSE;
@@ -717,11 +788,19 @@ function check_chunks($multiplied_iteration)
 	if($calc_min_places_allocated)
 	{
 		foreach($multiplied_iteration as $iteration => $value)
-		{ if(!(empty($value->unallocated_min_places))) { $report_output .= $value->id . '; '; unset($multiplied_iteration[$iteration]); } }
+		{ if(!(empty($value->unallocated_min_places))) { unset($multiplied_iteration[$iteration]); } }
 	}
+	else
+	{
+		$minimal_unallocated_min_places = min(return_array_by_key($multiplied_iteration, "unallocated_min_places"));
+		foreach($multiplied_iteration as $iteration => $value)
+		{
+			if( $value->unallocated_min_places > $minimal_unallocated_min_places)
+			{ unset($multiplied_iteration[$iteration]); }
+		}
+	}	
 	usort($multiplied_iteration, "sort_by_happiness");
 	return $multiplied_iteration[0];
 }
-
 
 ?>

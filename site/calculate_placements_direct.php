@@ -45,6 +45,11 @@ $placements = get_placements($placement_table);
 array_unshift($priority_types, "JOKER");
 $priority_types[] = "LOCATION";
 
+// Fill priority 1 if there is only 1 option
+$deployments = filter_deployments($placements);
+$deployment_placements = return_placement_deployments($deployments, $placements);
+$placement_student = set_first_priority_for_no_choice_deployments($deployment_placements, $placement_student);
+
 $multiplied_iteration = array();
 for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(), $chunk_output = ""; $iteration_multiplier >= $i && (!(microtime(true) > ($time_begin + get_MAX_RUNTIME())) || get_MAX_RUNTIME() == 0); $i++)
 {	
@@ -81,7 +86,7 @@ else
 	$result_table->report_output .= "<br />There were errors while calculating. I will save a copy of the calculated students table in the calculation folder without replacing the stundents database.<br />";
 	print date('d.m.Y-H:i:s:', time()) . " Errors calculating - Sending emails to admins<br />";
 	insert_calculation_file($placement_id, "students_new", $students_by_id) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the students file. :("; 
-	send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
+	//send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
 }			
 
 $time_end = microtime(true) - $time_begin; 
