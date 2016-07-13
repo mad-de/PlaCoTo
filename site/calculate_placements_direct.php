@@ -22,7 +22,7 @@ if(empty($placement_id)) { die("Nothing to calculate."); }
 
 // ini_set('memory_limit', '-1');
 // set_time_limit(-1);
-// ignore_user_abort(true);
+ignore_user_abort(true);
 
 // Create folder first to lock any following attempts on calculating or DDOSing our script
 if(!is_dir(get_DB_PATH() . DIRECTORY_SEPARATOR . 'calculation_' . $placement_id . DIRECTORY_SEPARATOR))
@@ -38,17 +38,16 @@ $placement_table = fetch_json_table('placement_' . $placement_id . '.json');
 // Backup students.json
 file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'calculation_' . $placement_id . DIRECTORY_SEPARATOR . 'students_backup.json', json_encode($student_table)) or die("Backing up students.json failed. Aborting.");
 
-$placement_student = combine_wishlist_and_student_table($wishlist_table, $student_table);
 $placements = get_placements($placement_table);
+$deployments = filter_deployments($placements);
+$deployment_placements = return_placement_deployments($deployments, $placements);
+$wishlist_table = set_first_priority_for_no_choice_deployments($deployment_placements, $wishlist_table);
+
+$placement_student = combine_wishlist_and_student_table($wishlist_table, $student_table);
 
 // insert JOKER at beginning of priority types array and Location at the end
 array_unshift($priority_types, "JOKER");
 $priority_types[] = "LOCATION";
-
-// Fill priority 1 if there is only 1 option
-$deployments = filter_deployments($placements);
-$deployment_placements = return_placement_deployments($deployments, $placements);
-$placement_student = set_first_priority_for_no_choice_deployments($deployment_placements, $placement_student);
 
 $multiplied_iteration = array();
 for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(), $chunk_output = ""; $iteration_multiplier >= $i && (!(microtime(true) > ($time_begin + get_MAX_RUNTIME())) || get_MAX_RUNTIME() == 0); $i++)

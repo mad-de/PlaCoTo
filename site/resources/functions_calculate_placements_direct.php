@@ -327,12 +327,13 @@ function set_first_priority_for_no_choice_deployments($deployment_placements, $p
 	{
 		if(count($value->placements) == 1)
 		{
-			foreach($placement_student as $current_student)
+			foreach($placement_student as &$current_student)
 			{
-				if(isset($current_student->deployments[$deployment_placement]))
+				if(array_key_exists($deployment_placement, $current_student["DEPLOYMENTS"]))
 				{
-					$current_student->deployments[$deployment_placement][1] = $value->placements[0];
+					$current_student["DEPLOYMENTS"][$deployment_placement][1] = $value->placements[0];
 				}
+				unset($current_student);
 			}
 		}
 	}
@@ -681,7 +682,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		$i_missing_min_places = FALSE;
 		foreach($i_placements as $this_i_placement)
 		{
-			if(!(empty($this_i_placement->places_min)) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
+			if(!(empty($this_i_placement->places_min)) && !(empty($this_i_placement->students_alloc)) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
 			{
 				$i_missing_min_places = TRUE;
 				$iteration_describer[$iterations] -> unallocated_min_places[$this_i_placement->id] = ($this_i_placement->places_min - count($this_i_placement->students_alloc)) ;
