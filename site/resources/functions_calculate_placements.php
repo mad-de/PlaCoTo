@@ -14,6 +14,7 @@ class student
   var $karma;
   var $joker;
   public $deployments = array();
+  public $deployment_deduction = array();
   public $timeframes_unavailable = array();
 }
 
@@ -25,12 +26,14 @@ class comp_student
   var $used_joker;
   public $timeframes_unavailable = array();
   public $deployments = array();
+  public $deployment_deduction = array();
   var $calc_luck;
 }
 
 class placement
 {
   var $id;
+  var $name;
   var $deployment;
   var $location;
   var $timeframe_begin;
@@ -39,13 +42,19 @@ class placement
   var $places_max;
   public $students_alloc = array();
 }
+class deployment
+{
+  public $placements = array();
+}
 
 class iteration_describer
 {
   var $id;
   var $overall_happiness;
   public $unallocated_students = array();
+  var $num_unallocated_students;
   public $unallocated_min_places = array();
+  var $num_unallocated_min_places;
   public $students = array();
   public $placements = array();
   var $report_output;
@@ -65,6 +74,13 @@ function return_students($array)
 		$students[$i] -> email = $orig_student -> email;
 		$students[$i] -> name = $orig_student -> name;
 		$students[$i] -> deployments = $orig_student -> deployments;
+		$deployment_deduction = array();
+		foreach($students[$i]->deployments as $deployment => $value)
+		{
+			$deployment_deduction[$deployment] = new stdClass();
+			$deployment_deduction[$deployment] = get_PRIORITIES_AFFECTING_KARMA();
+		}
+		$students[$i] -> deployment_deduction = $deployment_deduction;
 		$students[$i] -> timeframes_unavailable = $orig_student -> timeframes_unavailable;
 		$i++;
 	}
@@ -189,12 +205,27 @@ function combine_wishlist_and_student_table($wishlist_table, $student_table)
 			$placement_student[$placement_student_count] = new student;
 			$placement_student[$placement_student_count] -> id = $wishlist["ID"];
 			$placement_student[$placement_student_count] -> deployments = $wishlist["DEPLOYMENTS"];
+			$placement_student[$placement_student_count] -> karma = 0;
+			// if user has not choosen any priorities for a deployment, increase karma points
+			foreach($placement_student[$placement_student_count]->deployments as $deployment)
+			{
+				$no_wishes = TRUE;
+				foreach($deployment as $key => $value)
+				{
+					if(!empty($value))
+					{ $no_wishes = FALSE; }
+				}
+				if($no_wishes)
+				{
+					$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count]->karma + get_BONUS_NO_WISHES());					
+				}
+			}
 			$placement_student[$placement_student_count] -> timeframes_unavailable = $wishlist["TIMEFRAMES_UNAVAILABLE"];
 			// Add a custom unavailable timeframe if user has one and reduce karma points
 			if(!(empty($wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"])))
 			{
 				$placement_student[$placement_student_count] -> timeframes_unavailable[] = $wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"];
-				$placement_student[$placement_student_count] -> karma = get_DEDUCTION_CUSTOM_TIMEFRAME();
+				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count]->karma + get_DEDUCTION_CUSTOM_TIMEFRAME());
 			}
 			$placement_student_count = $placement_student_count + 1;
 		}
@@ -267,13 +298,13 @@ function inform_students_via_email($students, $students_by_id, $placements, $pla
 		$emails_to_students[$emails_to_students_counter] = new email;
 		$emails_to_students[$emails_to_students_counter]->receiver = $students_by_id[$this_email_student->id]["EMAIL"];
 		$emails_to_students[$emails_to_students_counter]->topic = "Your placements for " . $placement_name;
-		$this_message = "Hello " . $students_by_id[$this_email_student->id]["NAME"] . "<br /><br />Results are out for " . $placement_name . ":<br /><br />";
+		$this_message = "Hello " . $students_by_id[$this_email_student->id]["NAME"] . "<br /><br />Results are out for " . $placement_name . ":";
 		foreach($placements as $this_placement)
 		{ 
 			if(in_array($students_by_id[$this_email_student->id]["NAME"], $this_placement->students_alloc))		
-			{ $this_message .= "You were allocated to " . $this_placement->name . " from " . timestamp_to_german_date($this_placement->timeframe_begin) . " - " . timestamp_to_german_date($this_placement->timeframe_end) . "<br />";} 
+			{ $this_message .= "<br />You were allocated to " . $this_placement->name . " from " . timestamp_to_german_date($this_placement->timeframe_begin) . " - " . timestamp_to_german_date($this_placement->timeframe_end);} 
 		}	
-		$this_message .= 'How was this calculated? Take a look at the <a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a>. Your ID is ' . $this_email_student->id;
+	$this_message .= '<br /><br />Your new karma is: ' . $students_by_id[$this_email_student->id]["KARMA"] . '<br />How was this calculated? Take a look at the <a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a>. Your ID is ' . $this_email_student->id;
 		$emails_to_students[$emails_to_students_counter]->message = $this_message;
 		$emails_to_students_counter++;
 	}	
@@ -290,6 +321,24 @@ function sort_students_by_id($student_table)
 	foreach($student_table as $this_student)
 	{ $students_by_id[$this_student["ID"]] = $this_student; }
 	return $students_by_id;
+}
+function set_first_priority_for_no_choice_deployments($deployment_placements, $placement_student)
+{
+	foreach($deployment_placements as $deployment_placement => $value)
+	{
+		if(count($value->placements) == 1)
+		{
+			foreach($placement_student as &$current_student)
+			{
+				if(array_key_exists($deployment_placement, $current_student["DEPLOYMENTS"]))
+				{
+					$current_student["DEPLOYMENTS"][$deployment_placement][1] = $value->placements[0];
+				}
+				unset($current_student);
+			}
+		}
+	}
+	return $placement_student;
 }
 function replace_id_with_name($placements, $students_by_id)
 {
@@ -325,10 +374,23 @@ function result_placement_report($placements)
 	}
 	return $report;
 }		
-function calculate_placements($placement_student, $placements, $priority_types, $chunk_num)
+function return_placement_deployments($deployments, $placements)
 {
-	// Initialize some vars
+	foreach($deployments as $deployment)
+	{
+		$deployment_placements[$deployment] = new deployment;
+		foreach($placements as $placement)
+		{
+			if($placement->deployment == $deployment && !in_array($placement->name ,$deployment_placements[$deployment]->placements))
+			{ $deployment_placements[$deployment] -> placements[] = $placement->name; }
+		}
+	}
+	return $deployment_placements;
+}
+function calculate_chunk($placement_student, $placements, $priority_types, $chunk_num)
+{
 	$deployments = filter_deployments($placements);
+	$deployment_placements = return_placement_deployments($deployments, $placements);
 	$report_output = '<h1>Report (Start: ' . date('d.m.Y-H:i:s', time()) . ')</h1>';
 
 	// Report wishlist
@@ -336,7 +398,7 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 	$report_output .= '<h2>Participating students:</h2>';
 	foreach($placement_student as $report_student)
 	{
-		$report_output .= 'Student ID: ' . $report_student->id . '; Karma (after initial deductions): ' .  $report_student->karma;
+		$report_output .= 'Student ID: ' . $report_student->id . '; Karma (after initial calculations): ' .  $report_student->karma;
 		if(!empty($report_student->joker))
 		{
 			$report_output .= '; Jokers: ' . $report_student->joker . ';';
@@ -405,7 +467,7 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 		// use pointers for iterations
 		$i_placements = return_placements($placements);
 		$i_placement_student = return_students($placement_student);
-
+		
 		// Sort placements randomly
 		usort($i_placements, "sort_random");
 
@@ -419,20 +481,6 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 			{
 				// Sort placements by min_places
 				usort($i_placements, "sort_by_open_min_places");
-			}
-			// karma bonus for remaining round
-			if($key == (count($priority_types) - 2))
-			{
-				$iteration_output[$iterations] .=  '<i>The following students get a karma bonus of ' . get_BONUS_REMAINING_ROUND() . ': ';
-				foreach($i_placement_student as $this_i_placement_student)
-				{
-					if(!(empty($this_i_placement_student->deployments)))
-					{
-							$iteration_output[$iterations] .=  'ID:' . $this_i_placement_student->id . '; '; 
-							$this_i_placement_student->karma = ($this_i_placement_student->karma + get_BONUS_REMAINING_ROUND());
-					}
-				}
-				$iteration_output[$iterations] .= 'Congratulations!</i><br/>';
 			}
 			foreach($i_placements as $current_placement)
 			{
@@ -461,11 +509,12 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 						$current_student_array[$current_student_count]->joker = &$current_student->joker;
 						$current_student_array[$current_student_count]->timeframes_unavailable = &$current_student->timeframes_unavailable;
 						$current_student_array[$current_student_count]->deployments = &$current_student->deployments;
+						$current_student_array[$current_student_count]->deployment_deduction = &$current_student->deployment_deduction;
 						$current_student_array[$current_student_count]->karma = &$current_student->karma;
 						$current_student_count = $current_student_count + 1;
 					}
 				}
-				$iteration_output[$iterations] .= $current_placement->name . '. Time: ' . timestamp_to_german_date($report_placement->timeframe_begin). '-' . timestamp_to_german_date($report_placement->timeframe_end) . '; Available places: ' . $places_target;
+				$iteration_output[$iterations] .= $current_placement->name . '. Time: ' . timestamp_to_german_date($current_placement->timeframe_begin). '-' . timestamp_to_german_date($current_placement->timeframe_end) . '; Available places: ' . $places_target;
 				$iteration_output[$iterations] .= '; with ' . count($current_student_array) . ' Students eligable: ';
 				foreach($current_student_array as $report_student)
 				{
@@ -476,8 +525,22 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 				if (empty($current_student_array))
 				{ }
 				elseif(($places_target < 1) || ($current_placement->places_max == 0))
-				{ $iteration_output[$iterations] .= '<br />But there are no placements open. Sorry guys!'; }		
-				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)))
+				{ 
+					$iteration_output[$iterations] .= '<br />But there are no placements open. Sorry guys!';
+					if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+					{
+						foreach($current_student_array as $current_student)
+						{
+							if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
+							{
+								$iteration_output[$iterations] .= '<br /><i>ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '</i>';
+								$current_student->karma = ($current_student->karma + get_BONUS_ROLL_PLACEMENT());
+								unset($current_student->deployment_deduction[$current_placement->deployment][$key]);
+							}
+						}
+					}
+				}		
+				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)) && (!($key == (count($priority_types) - 2)) || ($places_target == count($current_student_array))) && (!($key == (count($priority_types) - 1)) || ($current_placement->places_min <= count($current_student_array))))
 				{
 					$iteration_output[$iterations] .= '<br />Enough places for all eligable students. Students allocated: ';
 					// Allocate student - delete keys from array
@@ -489,11 +552,27 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 						$current_placement->students_alloc[] = $current_student->id;
 						if(!($key == (count($priority_types) - 2) || $key == (count($priority_types) - 1)))
 						{ $this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10)); }
-						if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' <i>. He used a Joker in this round. So his Joker will be subtracted. Goodbye, Joker!</i>'; }
-						$iteration_output[$iterations] .=  ';';
+						if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' <i>. He used a Joker in this round. So his Joker will be subtracted. Goodbye, Joker!;</i> '; }
+						else
+						{
+							if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+							{
+								if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
+								{
+									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
+									$current_student->karma = ($current_student->karma + get_DEDUCTION_ROLL_PLACEMENT());
+								}
+								else
+								{							
+									$iteration_output[$iterations] .= '; He already got a karma bonus in this round. His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
+									$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
+								}	
+								$iteration_output[$iterations] .= '; ';
+							}
+						}
 					}
 				}
-				else
+				elseif($places_target < count($current_student_array))
 				{
 					$iteration_output[$iterations] .= '<br />Not enough places. Begin calculating luck:';
 					// calculate luck
@@ -509,15 +588,26 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 							{
 								unset($current_student->deployments[$current_placement->deployment]);
 								$current_student->timeframes_unavailable[] = $current_placement->timeframe_begin . '::' . $current_placement->timeframe_end;
-								// Reduce karma points
-								if(!($key == (count($priority_types) - 2) || $key == (count($priority_types) - 1)))
-								{
-									$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
-									$current_student->karma = ($current_student_array[$i]->karma + get_DEDUCTION_ROLL_PLACEMENT());
-									$this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10));
-								}
+								$this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10));
 								// Reduce joker
 								if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' (used a Joker in this round. So his Joker will be subtracted)'; }
+								else
+								{
+									// Reduce karma points							
+									if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+									{
+										if(in_array($key, $current_student->deployment_deduction[$current_placement->deployment]))
+											{
+												$iteration_output[$iterations] .= '; His karma will therefore be reduced by ' . abs(get_DEDUCTION_ROLL_PLACEMENT());
+												$current_student->karma = ($current_student->karma + get_DEDUCTION_ROLL_PLACEMENT());
+											}
+											else
+											{							
+												$iteration_output[$iterations] .= '; He already got a karma bonus in this round. His karma will therefore be reduced by ' . (2 * abs(get_DEDUCTION_ROLL_PLACEMENT()));
+												$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
+											}	
+										}
+								}
 								// Allocate student
 								$current_placement->students_alloc[] = $current_student->id;
 								$iteration_output[$iterations] .=  ';</i>';
@@ -526,14 +616,28 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 					}
 					while(count($current_student_array) > $i)
 					{
-						$iteration_output[$iterations] .= '<i><br />ID:' . $current_student_array[$i]->id . ' rolled the dice with a karma of ' . $current_student_array[$i]->karma .  '. He was unsuccesful with ' . $current_student_array[$i]->calc_luck . ' points. Sorry, mate.</i>';
+						$iteration_output[$iterations] .= '<i><br />ID:' . $current_student_array[$i]->id . ' rolled the dice with a karma of ' . $current_student_array[$i]->karma .  '. He was unsuccesful with ' . $current_student_array[$i]->calc_luck . ' points. Sorry, mate.';
+						if(in_array($key, get_PRIORITIES_AFFECTING_KARMA()) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+							{
+								if(in_array($key, $current_student_array[$i]->deployment_deduction[$current_placement->deployment]))
+								{
+									$iteration_output[$iterations] .= ' But he will get a Karma bonus of ' . get_BONUS_ROLL_PLACEMENT() . '; ';
+									$current_student_array[$i]->karma = ($current_student_array[$i]->karma + get_BONUS_ROLL_PLACEMENT());
+									unset($current_student_array[$i]->deployment_deduction[$current_placement->deployment][$key]);
+								}	
+							}
+						$iteration_output[$iterations] .= '</i>';
 						$i++;
 					}			
 				}
+				else
+				{
+					$iteration_output[$iterations] .= '<br />Not enough students to fill minimum places - skipping this round.';
+				}
 				if(!($this_round_happiness == 0))
 				{
-					$iteration_output[$iterations] .= '<br /><i>The overall happiness has increased by ' . $this_round_happiness . ' in this round</i>';
 					$i_overall_happiness = ($i_overall_happiness + $this_round_happiness);
+					$iteration_output[$iterations] .= '<br /><i>The overall happiness has increased by ' . $this_round_happiness . ' in this round and is now ' . $i_overall_happiness . '</i>';
 				}
 				$iteration_output[$iterations] .= '<br />';
 			} 
@@ -543,7 +647,7 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 		$iteration_output[$iterations] .= '<b>RESULTS:</b>';
 		foreach($i_placements as $current_placement)
 		{
-			$iteration_output[$iterations] .=  "<br />" . $current_placement->name . " (" . timestamp_to_german_date($report_placement->timeframe_begin). '-' . timestamp_to_german_date($report_placement->timeframe_end) . ")";
+			$iteration_output[$iterations] .=  "<br />" . $current_placement->name . " (" . timestamp_to_german_date($current_placement->timeframe_begin). '-' . timestamp_to_german_date($current_placement->timeframe_end) . ")";
 			$iteration_output[$iterations] .=  " Students: ";
 			foreach($current_placement->students_alloc as $student_alloc)
 			{
@@ -571,21 +675,29 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 				}
 			}
 		}
-		if($i_missing_placements) { $iteration_output[$iterations] .= $i_missing_placements_output; }
+		if($i_missing_placements) 
+		{
+			$iteration_describer[$iterations] -> num_unallocated_students = count($iteration_describer[$iterations]->unallocated_students);
+			$iteration_output[$iterations] .= $i_missing_placements_output; 
+		}
 		
 		// Missing min_places
 		$i_missing_min_places_output = '<br /><br /><b><u>Warning:</u> Placements with unallocated minumum places:</b><br />';
 		$i_missing_min_places = FALSE;
 		foreach($i_placements as $this_i_placement)
 		{
-			if(!(empty($this_i_placement->places_min)) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
+			if(!(empty($this_i_placement->places_min)) && !(empty($this_i_placement->students_alloc)) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
 			{
 				$i_missing_min_places = TRUE;
 				$iteration_describer[$iterations] -> unallocated_min_places[$this_i_placement->id] = ($this_i_placement->places_min - count($this_i_placement->students_alloc)) ;
 				$i_missing_min_places_output .= $this_i_placement->name . ' (' . timestamp_to_german_date($this_i_placement->timeframe_begin) . '-' . timestamp_to_german_date($this_i_placement->timeframe_end) . ') is missing ' . ($this_i_placement->places_min - count($this_i_placement->students_alloc)) . ' students.<br />';
 			}
 		}
-		if($i_missing_min_places) { $iteration_output[$iterations] .= $i_missing_min_places_output; }	
+		if($i_missing_min_places) 
+		{ 
+			$iteration_output[$iterations] .= $i_missing_min_places_output; 
+			$iteration_describer[$iterations] -> num_unallocated_min_places = count($iteration_describer[$iterations]->unallocated_min_places);
+		}	
 		
 		$iteration_output[$iterations] .= '<br />The overall happiness is: ' . $i_overall_happiness;
 		
@@ -608,12 +720,21 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 		foreach($iteration_describer as $iteration => $value)
 		{ if(!(empty($value->unallocated_students))) { $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); } }
 	}
-	else { $report_output .= "<b>HOOOMANZ!</b> I haven't been able to calculate a table, where all students are allocated. :("; }
+	else 
+	{ 
+		$report_output .= "<b>HOOOMANZ!</b> I haven't been able to calculate a table, where all students are allocated. :(. Removing iterations with more than minimal unallocated students. "; 
+		$minimal_unallocated_students = min(return_array_by_key($iteration_describer, "unallocated_students"));
+		foreach($iteration_describer as $iteration => $value)
+		{
+			if( $value->unallocated_students > $minimal_unallocated_students)
+			{ $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); }
+		}	
+	}
 
 	// Check if there is a calculation where all minimum places are allocated
 	$report_output .= "<br /><br />Step 2: I'll try to come up with a table, where all minimum placements are allocated.<br />";
 	$calc_min_places_allocated = FALSE;
-	foreach($iteration_describer as $iteration) { if(empty($iteration->unallocated_min_places)) { $calc_min_places_allocated = TRUE; } }
+	foreach($iteration_describer as $iteration) { if(empty($iteration->unallocated_min_places)) { $calc_min_places_allocated = TRUE;  } }
 	// if there is such a calculation, remove all others
 	if($calc_min_places_allocated)
 	{
@@ -621,7 +742,16 @@ function calculate_placements($placement_student, $placements, $priority_types, 
 		foreach($iteration_describer as $iteration => $value)
 		{ if(!(empty($value->unallocated_min_places))) { $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); } }
 	}
-	else { $report_output .= "<b>HOOOMANZ!</b> I haven`t been able to calculate a table, where all minimum places are allocated. :("; }
+	else 
+	{ 
+		$report_output .= "<b>HOOOMANZ!</b> I haven`t been able to calculate a table, where all minimum places are allocated. :(. Deleting all iterations with more than the minimum unallocated students: "; 
+		$minimal_unallocated_min_places = min(return_array_by_key($iteration_describer, "unallocated_min_places"));
+		foreach($iteration_describer as $iteration => $value)
+		{
+			if( $value->unallocated_min_places > $minimal_unallocated_min_places)
+			{ $report_output .= $value->id . '; '; unset($iteration_describer[$iteration]); }
+		}
+	}
 
 	// Step 3 order by happiness factor
 	$report_output .= "<br /><br />Step 3: I'll select the table with the highest happiness factor.<br />";
@@ -644,8 +774,17 @@ function check_chunks($multiplied_iteration)
 	if($calc_all_allocated)
 	{
 		foreach($multiplied_iteration as $iteration => $value)
-		{ if(!(empty($value->unallocated_students))) { $report_output .= $value->id . '; '; unset($multiplied_iteration[$iteration]); } }
+		{ if(!(empty($value->unallocated_students))) { unset($multiplied_iteration[$iteration]); } }
 	}
+	else
+	{
+		$minimal_unallocated_students = min(return_array_by_key($multiplied_iteration, "unallocated_students"));
+		foreach($multiplied_iteration as $iteration => $value)
+		{
+			if( $value->unallocated_students > $minimal_unallocated_students)
+			{ unset($multiplied_iteration[$iteration]); }
+		}
+	}		
 
 	// Check if there is a calculation where all minimum places are allocated
 	$calc_min_places_allocated = FALSE;
@@ -654,11 +793,19 @@ function check_chunks($multiplied_iteration)
 	if($calc_min_places_allocated)
 	{
 		foreach($multiplied_iteration as $iteration => $value)
-		{ if(!(empty($value->unallocated_min_places))) { $report_output .= $value->id . '; '; unset($multiplied_iteration[$iteration]); } }
+		{ if(!(empty($value->unallocated_min_places))) { unset($multiplied_iteration[$iteration]); } }
 	}
+	else
+	{
+		$minimal_unallocated_min_places = min(return_array_by_key($multiplied_iteration, "unallocated_min_places"));
+		foreach($multiplied_iteration as $iteration => $value)
+		{
+			if( $value->unallocated_min_places > $minimal_unallocated_min_places)
+			{ unset($multiplied_iteration[$iteration]); }
+		}
+	}	
 	usort($multiplied_iteration, "sort_by_happiness");
 	return $multiplied_iteration[0];
 }
-
 
 ?>
