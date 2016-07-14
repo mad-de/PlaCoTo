@@ -84,7 +84,7 @@ else
 	$result_table->report_output .= "<br />There were errors while calculating. I will save a copy of the calculated students table in the calculation folder without replacing the stundents database.<br />";
 	print date('d.m.Y-H:i:s:', time()) . " Errors calculating - Sending emails to admins<br />";
 	insert_calculation_file($placement_id, "students_new", $students_by_id) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the students file. :("; 
-	//send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
+	send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
 }			
 
 $time_end = microtime(true) - $time_begin; 

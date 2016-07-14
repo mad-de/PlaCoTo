@@ -540,7 +540,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						}
 					}
 				}		
-				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)) && (!($key == (count($priority_types) - 2)) || ($places_target == count($current_student_array))) && (!($key == (count($priority_types) - 1)) || ($current_placement->places_min <= count($current_placement->students_alloc)) || ($current_placement->places_min <= count($current_student_array))))
+				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)) && (!($key == (count($priority_types) - 2)) || ($places_target == count($current_student_array))) && (!($key == (count($priority_types) - 1)) || ($current_placement->places_min <= (count($current_placement->students_alloc) + count($current_student_array))) || ($current_placement->places_min <= count($current_student_array))))
 				{
 					$iteration_output[$iterations] .= '<br />Enough places for all eligable students. Students allocated: ';
 					// Allocate student - delete keys from array
