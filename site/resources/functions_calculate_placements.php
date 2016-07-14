@@ -540,7 +540,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 						}
 					}
 				}		
-				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)) && (!($key == (count($priority_types) - 2)) || ($places_target == count($current_student_array))) && (!($key == (count($priority_types) - 1)) || ($current_placement->places_min <= count($current_student_array))))
+				elseif (!(empty($current_student_array)) && !($places_target == 0) && ($places_target >= count($current_student_array)) && (!($key == (count($priority_types) - 2)) || ($places_target == count($current_student_array))) && (!($key == (count($priority_types) - 1)) || ($current_placement->places_min <= count($current_placement->students_alloc)) || ($current_placement->places_min <= count($current_student_array))))
 				{
 					$iteration_output[$iterations] .= '<br />Enough places for all eligable students. Students allocated: ';
 					// Allocate student - delete keys from array
@@ -588,7 +588,8 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 							{
 								unset($current_student->deployments[$current_placement->deployment]);
 								$current_student->timeframes_unavailable[] = $current_placement->timeframe_begin . '::' . $current_placement->timeframe_end;
-								$this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10));
+								if(!($key == (count($priority_types) - 2) || $key == (count($priority_types) - 1)))
+								{ $this_round_happiness = ($this_round_happiness + ((count($priority_types) - $key) * 10)); }
 								// Reduce joker
 								if($key == 0) { $current_student->joker = ($current_student->joker - 1); $iteration_output[$iterations] .= ' (used a Joker in this round. So his Joker will be subtracted)'; }
 								else
