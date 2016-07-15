@@ -23,7 +23,10 @@ define ("EMAIL_SPECIAL_CHARS", serialize(array('@', '.', '_', '-')));
 define ("PLACEMENT_SPECIAL_CHARS", serialize(array(' ', '.', '_', '-', '(', ')', ':', 'Ä', 'ä', 'Ü', 'ü', 'Ö', 'ö', 'ß', '/')));
 
 $DEBUG = FALSE;
+$priority_types = array(1 => "PRIORITY 1", 2 => "PRIORITY 2", 3 => "PRIORITY 3");
+define ("PRIORITIES_AFFECTING_KARMA", serialize(array('0', '1')));
 
+// DO NOT CHANGE ANYTHING BEYOND THIS LINE
 
 function get_DB_PATH() { return DB_PATH; }
 function get_RECAPTCHA_SECRET_KEY() { return RECAPTCHA_SECRET_KEY; }
@@ -41,8 +44,6 @@ function get_ITERATIONS() { return ITERATIONS; }
 function get_ITERATION_MULTIPLIER() { return ITERATION_MULTIPLIER; }
 function get_EMAIL_SPECIAL_CHARS() { return unserialize(EMAIL_SPECIAL_CHARS); }
 function get_PLACEMENT_SPECIAL_CHARS() { return unserialize(PLACEMENT_SPECIAL_CHARS); }
-
-
-$priority_types = array(1 => "PRIORITY 1", 2 => "PRIORITY 2", 3 => "PRIORITY 3");
+function get_PRIORITIES_AFFECTING_KARMA() { return unserialize(PRIORITIES_AFFECTING_KARMA); }
 
 ?>

@@ -10,7 +10,7 @@ if (!($student_table === FALSE))
 	{
 		if($this_table_student["ID"] == $_GET["id"])
 		{
-			if(!($this_table_student["STATUS"] == "USER"))
+			if($this_table_student["STATUS"] == "UNCONFIRMED")
 			{
 				$this_table_student["STATUS"] = "USER";
 				if(file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'students.json', json_encode($student_table)))
