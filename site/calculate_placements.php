@@ -38,16 +38,17 @@ $placement_table = fetch_json_table('placement_' . $placement_id . '.json');
 // Backup students.json
 file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'calculation_' . $placement_id . DIRECTORY_SEPARATOR . 'students_backup.json', json_encode($student_table)) or die("Backing up students.json failed. Aborting.");
 
+$priority_types[] = "LOCATION";
+
 $placements = get_placements($placement_table);
 $deployments = filter_deployments($placements);
 $deployment_placements = return_placement_deployments($deployments, $placements);
-$wishlist_table = set_first_priority_for_no_choice_deployments($deployment_placements, $wishlist_table);
+$wishlist_table = set_priorities_special_deployments($deployment_placements, $wishlist_table, $priority_types);
 
 $placement_student = combine_wishlist_and_student_table($wishlist_table, $student_table);
 
-// insert JOKER at beginning of priority types array and Location at the end
+// insert JOKER at beginning of priority types array
 array_unshift($priority_types, "JOKER");
-$priority_types[] = "LOCATION";
 $multiplied_iteration = array();
 for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(), $chunk_output = ""; $iteration_multiplier >= $i && (!(microtime(true) > ($time_begin + get_MAX_RUNTIME())) || get_MAX_RUNTIME() == 0); $i++)
 {	

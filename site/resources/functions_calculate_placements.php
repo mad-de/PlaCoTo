@@ -322,7 +322,7 @@ function sort_students_by_id($student_table)
 	{ $students_by_id[$this_student["ID"]] = $this_student; }
 	return $students_by_id;
 }
-function set_first_priority_for_no_choice_deployments($deployment_placements, $placement_student)
+function set_priorities_special_deployments($deployment_placements, $placement_student, $priority_types)
 {
 	foreach($deployment_placements as $deployment_placement => $value)
 	{
@@ -337,7 +337,24 @@ function set_first_priority_for_no_choice_deployments($deployment_placements, $p
 				unset($current_student);
 			}
 		}
-	}
+		elseif(count($value->placements) == 2)
+		{
+			foreach($placement_student as &$current_student)
+			{
+				if(array_key_exists($deployment_placement, $current_student["DEPLOYMENTS"])  && !(empty($current_student["DEPLOYMENTS"][$deployment_placement][1])))
+				{
+					foreach($priority_types as $key => $value )
+					{
+						if(!($key == 1))
+						{
+							$current_student["DEPLOYMENTS"][$deployment_placement][$key] = "";
+						}
+					}
+				}
+				unset($current_student);
+			}
+		}
+		}
 	return $placement_student;
 }
 function replace_id_with_name($placements, $students_by_id)
