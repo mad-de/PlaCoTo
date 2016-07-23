@@ -33,6 +33,7 @@ class db_placement_list
 class db_placements
 {
 	var $ID;
+	var $ESSENTIAL;
 	var $NAME;
 	var $DEPLOYMENT;
 	var $LOCATION;
@@ -315,6 +316,7 @@ function fetch_placements($id)
 		{
 			$placements[$placement_count] = new db_placements;
 			$placements[$placement_count] -> ID = $this_placement["ID"];
+			$placements[$placement_count] -> ESSENTIAL = $this_placement["ESSENTIAL"];
 			$placements[$placement_count] -> NAME = $this_placement["NAME"];
 			$placements[$placement_count] -> DEPLOYMENT = $this_placement["DEPLOYMENT"];
 			$placements[$placement_count] -> LOCATION = $this_placement["LOCATION"];
@@ -332,13 +334,14 @@ function fetch_placements($id)
 	}
 }
 
-function insert_new_placement($placement_id, $name, $deployment, $location, $begin, $end, $min, $max)
+function insert_new_placement($placement_id, $essential, $name, $deployment, $location, $begin, $end, $min, $max)
 {
 $placements = fetch_placements($placement_id);
 $this_id = count_highest_ID($placements) +1;
 
 	$placements[$this_id] = new db_placements;
 	$placements[$this_id] -> ID = $this_id;
+	$placements[$this_id] -> ESSENTIAL = $essential;
 	$placements[$this_id] -> NAME = $name;
 	$placements[$this_id] -> DEPLOYMENT = $deployment;
 	$placements[$this_id] -> LOCATION = $location;

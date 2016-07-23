@@ -3,7 +3,6 @@
 // load functions and classes
 include "resources/times.php";
 include "resources/email_functions.php";
-include "resources/times.php";
 include "resources/math.php";
 
 class student
@@ -33,6 +32,7 @@ class comp_student
 class placement
 {
   var $id;
+  var $essential;
   var $name;
   var $deployment;
   var $location;
@@ -95,6 +95,7 @@ foreach($array as $orig_placement)
 {
 	$placements[$i] = new placement; 
 	$placements[$i]->id = $orig_placement->id; 
+	$placements[$i]->essential = $orig_placement->essential; 
 	$placements[$i]->name = $orig_placement->name; 
 	$placements[$i]->deployment = $orig_placement->deployment;
 	$placements[$i]->location = $orig_placement->location;
@@ -258,6 +259,7 @@ function get_placements($placement_table)
 	{
 		$placements[$placement_count] = new placement; 
 		$placements[$placement_count]->id = $orig_placement["ID"]; 
+		$placements[$placement_count]->essential = $orig_placement["ESSENTIAL"]; 
 		$placements[$placement_count]->name = $orig_placement["NAME"]; 
 		$placements[$placement_count]->deployment = $orig_placement["DEPLOYMENT"];
 		$placements[$placement_count]->location = $orig_placement["LOCATION"];
@@ -354,7 +356,7 @@ function set_priorities_special_deployments($deployment_placements, $placement_s
 				unset($current_student);
 			}
 		}
-		}
+	}
 	return $placement_student;
 }
 function replace_id_with_name($placements, $students_by_id)
@@ -403,6 +405,22 @@ function return_placement_deployments($deployments, $placements)
 		}
 	}
 	return $deployment_placements;
+}
+function variable_mode_randomify_places($current_placement)
+{
+	if($current_placement->essential === TRUE)
+	// change essentials
+	{ if(rand(0, 100) >= (100 - get_VARIABLE_MODE_CHANGE_ESSENTIAL_PERC()) ) { $current_placement->places_max = round(rand(intval($current_placement->places_min), intval($current_placement->places_max))); } }
+	else
+	{
+		// change non-essentials
+		if(rand(0, 100) >= (100 - get_VARIABLE_MODE_CHANGE_NON_ESSENTIAL_PERC()) )
+		// dont remove non-essentials
+		{ if(rand(0, 100) >= (100 - get_VARIABLE_MODE_CHANGE_REMOVE_NON_ESSENTIAL_PERC()) ) { $current_placement->places_max = round(rand(intval($current_placement->places_min), intval($current_placement->places_max))); } }
+		else
+		{ $current_placement->places_max = 0; $current_placement->places_min = 0; }
+	}
+	return $current_placement;
 }
 function calculate_chunk($placement_student, $placements, $priority_types, $chunk_num)
 {
@@ -489,6 +507,17 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		usort($i_placements, "sort_random");
 
 		$iteration_output[$iterations] .= '<h3>Iteration ' . ((($chunk_num - 1) * get_ITERATIONS()) + $iterations) . ' (Chunk ' . $chunk_num . '; Iteration ' . $iterations . ')' . '</h3>';
+		if(get_VARIABLE_MODE()) 
+		{ 
+			$iteration_output[$iterations] .= '<b><u>Running in exhaust mode</u></b><br />';
+			foreach($i_placements as $current_placement)
+			{
+				$old_min_places = $current_placement->places_min;
+				$old_max_places = $current_placement->places_max;
+				$current_placement = variable_mode_randomify_places($current_placement);
+				$iteration_output[$iterations] .= $current_placement->name . ': Places min: ' . $old_min_places . '-> ' . $current_placement->places_min . '; Places max: ' . $old_max_places . '-> ' . $current_placement->places_max . '<br />'; 
+			}
+		}
 		$i_overall_happiness = 0;
 		// run depending on priority
 		foreach($priority_types as $key => $value)
@@ -586,6 +615,11 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 								}	
 								$iteration_output[$iterations] .= '; ';
 							}
+							elseif((($key == (count($priority_types) - 2)) || ($key == (count($priority_types) - 1))) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+							{
+								$iteration_output[$iterations] .= ' <i>Bad Luck round; ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_REMAINING_ROUND() . '</i>';
+								$current_student->karma = ($current_student->karma + get_BONUS_REMAINING_ROUND());
+							}
 						}
 					}
 				}
@@ -625,6 +659,11 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 												$current_student->karma = ($current_student->karma + (2 * get_DEDUCTION_ROLL_PLACEMENT()));
 											}	
 										}
+									elseif((($key == (count($priority_types) - 2)) || ($key == (count($priority_types) - 1))) && !(count($deployment_placements[$current_placement->deployment]->placements) == 1))
+									{
+										$iteration_output[$iterations] .= ' <i>Bad Luck round; ID:' . $current_student->id . ' gets a karma bonus of ' . get_BONUS_REMAINING_ROUND() . '</i>';
+										$current_student->karma = ($current_student->karma + get_BONUS_REMAINING_ROUND());
+									}
 								}
 								// Allocate student
 								$current_placement->students_alloc[] = $current_student->id;
@@ -704,7 +743,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		$i_missing_min_places = FALSE;
 		foreach($i_placements as $this_i_placement)
 		{
-			if(!(empty($this_i_placement->places_min)) && !(empty($this_i_placement->students_alloc)) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
+			if(!(empty($this_i_placement->places_min)) && (($this_i_placement->essential === TRUE) || (($this_i_placement->essential === TRUE) && !(empty($this_i_placement->students_alloc)))) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
 			{
 				$i_missing_min_places = TRUE;
 				$iteration_describer[$iterations] -> unallocated_min_places[$this_i_placement->id] = ($this_i_placement->places_min - count($this_i_placement->students_alloc)) ;

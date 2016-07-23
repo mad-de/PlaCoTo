@@ -9,14 +9,16 @@ if(!isset($_GET["step"]))
 		$output_edit_placements = 'Placements in Placement_list' . $_GET["id"] . '<br />';
 	
 		$output_edit_placements .= '<form action="admin.php?act=edit_placements&id=' . $_GET["id"] . '&step=submit" method="POST" autocomplete="off">';
-		$output_edit_placements .= '<table><tr><th>ID</th><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>BEGIN</th><th>END</th><th>MIN</th><th>MAX</th><th>DELETE</th></tr>';
+		$output_edit_placements .= '<table><tr><th>ESSENTIAL</th><th>ID</th><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>BEGIN</th><th>END</th><th>MIN</th><th>MAX</th><th>DELETE</th></tr>';
 		$count = 0;
 		foreach($placements as $placement)
 		{
+			if($placement->ESSENTIAL === TRUE) { $this_essential = " checked=\"checked\""; } else { $this_essential = ""; }
 			$begin = timestamp_to_german_date($placement->TIMEFRAME_BEGIN);
 			$end = timestamp_to_german_date($placement->TIMEFRAME_END);
 			$output_edit_placements .= <<< EOT
-		  <tr><td><input id="name" name="{$count}::id" type="hidden" value="{$placement->ID}">{$placement->ID}</td>
+		  <tr><td><input type="checkbox" name="{$count}::essential"{$this_essential}></td>
+		  <td><input id="name" name="{$count}::id" type="hidden" value="{$placement->ID}">{$placement->ID}</td>
 	      <td><input id="name" name="{$count}::name" value="{$placement->NAME}"></td>
 	      <td><input id="deployment" name="{$count}::deployment" value="{$placement->DEPLOYMENT}" size="9"></td>
 	      <td><input id="deployment" name="{$count}::location" value="{$placement->LOCATION}" size="7"></td>
@@ -51,6 +53,7 @@ elseif($_GET["step"] == "submit")
 		check_array_special_chars(array($_POST[$input_count . "::id"], $_POST[$input_count . "::name"], $_POST[$input_count . "::deployment"], $_POST[$input_count . "::location"], $_POST[$input_count . "::timeframe_begin"], $_POST[$input_count . "::timeframe_end"], $_POST[$input_count . "::places_min"], $_POST[$input_count . "::places_max"])) or die ("CRITICAL ERROR updating id " . $_POST[$input_count . "::id"]);
 		$new_placements[$input_count] = new db_placements;
 		$new_placements[$input_count]-> ID = $_POST[$input_count . "::id"];
+		if(isset($_POST[$input_count . "::essential"])) { $new_placements[$input_count]-> ESSENTIAL = TRUE; } else { $new_placements[$input_count]-> ESSENTIAL = FALSE; }
 		$new_placements[$input_count]-> NAME = $_POST[$input_count . "::name"];
 		$new_placements[$input_count]-> DEPLOYMENT = $_POST[$input_count . "::deployment"];
 		$new_placements[$input_count]-> LOCATION = $_POST[$input_count . "::location"];
@@ -73,6 +76,7 @@ elseif($_GET["step"] == "delete_placement")
 		{
 			$new_placements[$placement_count] = new db_placements;
 			$new_placements[$placement_count]-> ID = $this_placement_table->ID;
+			$new_placements[$placement_count]-> ESSENTIAL = $this_placement_table->ESSENTIAL;
 			$new_placements[$placement_count]-> NAME = $this_placement_table->NAME;
 			$new_placements[$placement_count]-> DEPLOYMENT = $this_placement_table->DEPLOYMENT;
 			$new_placements[$placement_count]-> LOCATION = $this_placement_table->LOCATION;

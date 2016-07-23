@@ -54,8 +54,8 @@ if(isset($_GET["id"]))
 			$submitted_location = $_POST["other_location"]; 
 		}
 		else { $submitted_location = $_POST["location"]; }
-
-		insert_new_placement($_GET["id"], $submitted_name, $submitted_deployment, $submitted_location, $placement_begin, $placement_end, $_POST["places_min"], $_POST["places_max"]);
+		if(isset($_POST["essential"])) { $submitted_essential = TRUE; } else { $submitted_essential = FALSE; }
+		insert_new_placement($_GET["id"], $submitted_essential, $submitted_name, $submitted_deployment, $submitted_location, $placement_begin, $placement_end, $_POST["places_min"], $_POST["places_max"]);
 	}
 	
 	$placements = fetch_placements($_GET["id"]);
@@ -85,8 +85,9 @@ if(isset($_GET["id"]))
 
 	$output_add_placements .= <<< EOT
 	Enter details for clinic placement:
-	<table><tr><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>TIMEFRAME</th><th>MINIMUM PLACES</th><th>MAXIMUM PLACES</th></tr>
-	<form action="admin.php?act=add_placements&submit=TRUE&id={$_GET["id"]}" method="POST" autocomplete="off">
+	<table><tr><th>ESSENTIAL</th><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>TIMEFRAME</th><th>MINIMUM PLACES</th><th>MAXIMUM PLACES</th></tr>
+	<tr><form action="admin.php?act=add_placements&submit=TRUE&id={$_GET["id"]}" method="POST" autocomplete="off">
+	<td><input type="checkbox" name="essential"></td>
 	<td>{$name}</td>
 	<td>{$deployment}</td>
 	<td>{$locations}</td>
