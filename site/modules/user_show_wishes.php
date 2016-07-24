@@ -85,5 +85,5 @@ foreach($deployments as $deployment)
 	$module_output .= '</b> (' . $deployment_applications_count . ' students / ' . $deployment_max_places . ' places)<br />';
 	$module_output .= $placements_output .'<br />';	
 }
-$module_output .= '<br /><u>Essential placements</u><br />[Minimal placements]</div></div>';
+$module_output .= '<br /><u>Essential placements</u><br />[Minimal places]</div></div>';
 ?>
