@@ -87,7 +87,7 @@ if(isset($_GET["id"]))
 	Enter details for clinic placement:
 	<table><tr><th>ESSENTIAL</th><th>NAME</th><th>DEPLOYMENT</th><th>LOCATION</th><th>TIMEFRAME</th><th>MINIMUM PLACES</th><th>MAXIMUM PLACES</th></tr>
 	<tr><form action="admin.php?act=add_placements&submit=TRUE&id={$_GET["id"]}" method="POST" autocomplete="off">
-	<td><input type="checkbox" name="essential"></td>
+	<td style="text-align:center; vertical-align:middle;"><input type="checkbox" name="essential"></td>
 	<td>{$name}</td>
 	<td>{$deployment}</td>
 	<td>{$locations}</td>

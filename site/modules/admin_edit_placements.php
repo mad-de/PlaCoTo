@@ -17,7 +17,7 @@ if(!isset($_GET["step"]))
 			$begin = timestamp_to_german_date($placement->TIMEFRAME_BEGIN);
 			$end = timestamp_to_german_date($placement->TIMEFRAME_END);
 			$output_edit_placements .= <<< EOT
-		  <tr><td><input type="checkbox" name="{$count}::essential"{$this_essential}></td>
+		  <tr><td style="text-align:center; vertical-align:middle;"><input type="checkbox" name="{$count}::essential"{$this_essential}></td>
 		  <td><input id="name" name="{$count}::id" type="hidden" value="{$placement->ID}">{$placement->ID}</td>
 	      <td><input id="name" name="{$count}::name" value="{$placement->NAME}"></td>
 	      <td><input id="deployment" name="{$count}::deployment" value="{$placement->DEPLOYMENT}" size="9"></td>
