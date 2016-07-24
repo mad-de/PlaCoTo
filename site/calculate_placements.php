@@ -54,7 +54,7 @@ for($i = 1, $iteration_multiplier = get_ITERATION_MULTIPLIER(), $chunk_output = 
 {	
 	print date('d.m.Y-H:i:s:', time()) . " Begin chunk " . $i . " (chunk size: " . get_ITERATIONS() . ")<br />";
 	$multiplied_iteration[$i] = calculate_chunk($placement_student, $placements, $priority_types, $i); 
-	$chunk_output .= '<br />Chunk ' . $i . ' with ' . get_ITERATIONS() . ' iterations. Happiness maximum: ' . $multiplied_iteration[$i]->overall_happiness;
+	$chunk_output .= '<br />Chunk ' . $i . ' with ' . get_ITERATIONS() . ' iterations. Unallocated students: ' . count($multiplied_iteration[$i]->unallocated_students) . '; Unallocated min placements: ' . count($multiplied_iteration[$i]->unallocated_min_places) . '; Happiness maximum: ' . $multiplied_iteration[$i]->overall_happiness . ';';
 }
 $result_table = check_chunks($multiplied_iteration);
 $result_table->report_output .= '<br /><br />Step 4: Find chunk with highest happiness iteration:' . $chunk_output;

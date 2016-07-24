@@ -6,8 +6,10 @@ class placement
 {
   var $name;
   public $timeframes = array();
+  var $places_min;
   var $places_max;
   var $places_wish;
+  var $essential;
 }
 
 $placements = fetch_placements($_GET["id"]);
@@ -35,8 +37,10 @@ foreach($deployments as $deployment)
 		{
 			$placements_for_deployment[$placement->NAME] = new placement;	
 			$placements_for_deployment[$placement->NAME]->name = $placement->NAME;	
+			$placements_for_deployment[$placement->NAME]->essential = $placement->ESSENTIAL;	
 			$placements_for_deployment[$placement->NAME]->timeframe[] = timestamp_to_german_date($placement->TIMEFRAME_BEGIN) . '-' . timestamp_to_german_date($placement->TIMEFRAME_END);
 			$placements_for_deployment[$placement->NAME]->places_max = $placement->PLACES_MAX;
+			$placements_for_deployment[$placement->NAME]->places_min = $placement->PLACES_MIN;
 			$places_wish = 0;
 			foreach($wishlist_table as $user)
 			{
@@ -61,6 +65,7 @@ foreach($deployments as $deployment)
 		elseif(($placement->DEPLOYMENT == $deployment) && (isset($placements_for_deployment[$placement->NAME])))
 		{
 			$placements_for_deployment[$placement->NAME]->places_max = $placements_for_deployment[$placement->NAME]->places_max + $placement->PLACES_MAX;
+			$placements_for_deployment[$placement->NAME]->places_min = $placements_for_deployment[$placement->NAME]->places_min + $placement->PLACES_MIN;
 			// count joker
 			if(isset($user['DEPLOYMENTS'][$deployment][0]) && $user['DEPLOYMENTS'][$deployment][0] == $placement->ID)
 			{
@@ -73,10 +78,12 @@ foreach($deployments as $deployment)
 	foreach($placements_for_deployment as $this_placement)
 	{
 		$deployment_max_places = $deployment_max_places + $this_placement->places_max;
-		$placements_output .= $this_placement->name . ' (' . $this_placement->places_wish . '/' . $this_placement->places_max . ')<br />';
+		if($this_placement->essential === TRUE) { $placements_output .= '<u>'; }
+		$placements_output .= $this_placement->name . ' (' . $this_placement->places_wish . '/' . $this_placement->places_max . '[' . $this_placement->places_min . '])<br />';
+		if($this_placement->essential === TRUE) { $placements_output .= '</u>'; }
 	}
 	$module_output .= '</b> (' . $deployment_applications_count . ' students / ' . $deployment_max_places . ' places)<br />';
 	$module_output .= $placements_output .'<br />';	
 }
-$module_output .= '</div></div>';
+$module_output .= '<br /><u>Essential placements</u><br />[Minimal placements]</div></div>';
 ?>
