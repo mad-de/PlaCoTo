@@ -189,7 +189,7 @@ function check_timeframes($placement_timeframe_begin, $placement_timeframe_end, 
 	foreach ($student_timeframes_unavailable as $student_timeframe_unavailable)
 	{
 		$this_timeframe = explode("::", $student_timeframe_unavailable);
-		if(!(($this_timeframe[0] < $placement_timeframe_begin && $this_timeframe[1] < $placement_timeframe_end) || ($this_timeframe[0] > $placement_timeframe_begin && $this_timeframe[1] > $placement_timeframe_end)))
+		if(!(($this_timeframe[0] < $placement_timeframe_begin && $this_timeframe[1] < $placement_timeframe_begin) || ($this_timeframe[0] > $placement_timeframe_end && $this_timeframe[1] > $placement_timeframe_end)))
 		{
 			$result_timeframes = FALSE;
 		}
