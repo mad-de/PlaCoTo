@@ -3,15 +3,16 @@
 // Specify Database path (should be hidden from your users)
 define("DB_PATH", "../database");
 // Leave public key empty if you don`t want to use a Recaptcha Captcha
-define("RECAPTCHA_SECRET_KEY", "6Ld8iSATAAAAAPfORhPefPakrSTYj9hGI8zRcmlu");
-define("RECAPTCHA_PUBLIC_KEY", "6Ld8iSATAAAAAOgIEz_s2F4z8Bf-sHccfKgwoHeP");
-define("WEBSITE_NAME", "Beta Klinikkoordinationstool");
-define("WEBSITE_URL", "beta.open-anatomy.org");
-define("EMAIL_SENDER", "do_not_reply@beta.open-anatomy.org");
+define("RECAPTCHA_SECRET_KEY", "");
+define("RECAPTCHA_PUBLIC_KEY", "");
+define("WEBSITE_NAME", "PlaCoTo");
+define("WEBSITE_URL", "example.org");
+define("EMAIL_SENDER", "mail@example.org");
 define("COSTUM_TIMEFRAME_MAX", 7);
 
 define("DEDUCTION_ROLL_PLACEMENT", -1);
 define("BONUS_ROLL_PLACEMENT", +1);
+define("DEDUCTION_SYSTEM_TIMEFRAME", -2);
 define("DEDUCTION_CUSTOM_TIMEFRAME", -2);
 define("BONUS_NO_WISHES", +1);
 define("BONUS_REMAINING_ROUND", +1);
@@ -49,6 +50,7 @@ function get_DEDUCTION_ROLL_PLACEMENT() { return DEDUCTION_ROLL_PLACEMENT; }
 function get_BONUS_ROLL_PLACEMENT() { return BONUS_ROLL_PLACEMENT; }
 function get_BONUS_REMAINING_ROUND() { return BONUS_REMAINING_ROUND; }
 function get_DEDUCTION_CUSTOM_TIMEFRAME() { return DEDUCTION_CUSTOM_TIMEFRAME; }
+function get_DEDUCTION_SYSTEM_TIMEFRAME() { return DEDUCTION_SYSTEM_TIMEFRAME; }
 function get_BONUS_NO_WISHES() { return BONUS_NO_WISHES; }
 function get_VARIABLE_MODE() { return (VARIABLE_MODE); }
 function get_VARIABLE_MODE_CHANGE_ESSENTIAL_PERC() { return (VARIABLE_MODE_CHANGE_ESSENTIAL_PERC); }
