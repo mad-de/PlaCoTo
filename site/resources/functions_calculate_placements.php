@@ -222,11 +222,17 @@ function combine_wishlist_and_student_table($wishlist_table, $student_table)
 				}
 			}
 			$placement_student[$placement_student_count] -> timeframes_unavailable = $wishlist["TIMEFRAMES_UNAVAILABLE"];
+			$placement_student[$placement_student_count] -> karma = $placement_student[$placement_student_count]->karma ;
+			// For each unavailable timeframe reduce Karma
+			foreach($wishlist["TIMEFRAMES_UNAVAILABLE"] as $this_timeframe_unavailable)
+			{				
+				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count] -> karma + get_DEDUCTION_SYSTEM_TIMEFRAME());
+			}
 			// Add a custom unavailable timeframe if user has one and reduce karma points
 			if(!(empty($wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"])))
 			{
 				$placement_student[$placement_student_count] -> timeframes_unavailable[] = $wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"];
-				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count]->karma + get_DEDUCTION_CUSTOM_TIMEFRAME());
+				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count] -> karma + get_DEDUCTION_CUSTOM_TIMEFRAME());
 			}
 			$placement_student_count = $placement_student_count + 1;
 		}
