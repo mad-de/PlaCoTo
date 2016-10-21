@@ -21,7 +21,7 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 	$user_wishes = fetch_user_wishes($this_student->ID, $_GET["id"]);
 	if(!($user_wishes === FALSE))
 	{
-		if(isset($_GET["submit"]))
+		if(isset($_GET["submit"]) && isset($_POST["valid_request"]))
 		{
 			// UPDATE TIMEFRAMES
 			$collect_timeframes_unavailable = array();
@@ -229,7 +229,7 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 
 				$priorities_output .= '<br />' . $location_options . '<br />';
 			}
-			$module_output .= '<form action="index.php?act=edit_choices&id=' . $_GET["id"] . '&submit=TRUE" method="POST" autocomplete="off">';
+			$module_output .= '<form action="index.php?act=edit_choices&id=' . $_GET["id"] . '&submit=TRUE" method="POST" autocomplete="off"><input type="hidden" name="valid_request" value="TRUE">';
 			$module_output .= $timeframes_output . $custom_timeframe . $deployment_output . $priorities_output . '<div class="submit_div"><button type="submit">Submit</button></div>';
 		}
 	}
