@@ -748,8 +748,8 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		$i_missing_min_places_output = '<br /><br /><b><u>Warning:</u> Placements with unallocated minumum places:</b><br />';
 		$i_missing_min_places = FALSE;
 		foreach($i_placements as $this_i_placement)
-		{
-			if(!(empty($this_i_placement->places_min)) && (($this_i_placement->essential === TRUE) || (($this_i_placement->essential === TRUE) && !(empty($this_i_placement->students_alloc)))) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
+		{    
+			if(!(empty($this_i_placement->places_min)) && (($this_i_placement->essential === TRUE) || (($this_i_placement->essential === FALSE) && !(empty($this_i_placement->students_alloc)))) && (count($this_i_placement->students_alloc) < $this_i_placement->places_min))
 			{
 				$i_missing_min_places = TRUE;
 				$iteration_describer[$iterations] -> unallocated_min_places[$this_i_placement->id] = ($this_i_placement->places_min - count($this_i_placement->students_alloc)) ;
