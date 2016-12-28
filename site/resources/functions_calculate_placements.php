@@ -196,7 +196,20 @@ function check_timeframes($placement_timeframe_begin, $placement_timeframe_end, 
 	}
 	return $result_timeframes;
 }
-function combine_wishlist_and_student_table($wishlist_table, $student_table)
+
+function get_all_timeframes($placements)
+{
+	$timeframe_array = array();
+	foreach($placements as $placement)
+	{
+		if(empty($timeframe_array) || !(in_array($placement->timeframe_begin . "::" . $placement->timeframe_end, $timeframe_array)))
+		{
+			$timeframe_array[] = $placement->timeframe_begin . "::" . $placement->timeframe_end;
+		}
+	}
+	return $timeframe_array;
+}
+function combine_wishlist_and_student_table($wishlist_table, $student_table, $all_timeframes)
 {
 	$placement_student_count = 0;
 	if (!($wishlist_table === FALSE))
@@ -222,18 +235,19 @@ function combine_wishlist_and_student_table($wishlist_table, $student_table)
 				}
 			}
 			$placement_student[$placement_student_count] -> timeframes_unavailable = $wishlist["TIMEFRAMES_UNAVAILABLE"];
-			$placement_student[$placement_student_count] -> karma = $placement_student[$placement_student_count]->karma ;
-			// For each unavailable timeframe reduce Karma
-			foreach($wishlist["TIMEFRAMES_UNAVAILABLE"] as $this_timeframe_unavailable)
-			{				
-				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count] -> karma + get_DEDUCTION_SYSTEM_TIMEFRAME());
-			}
-			// Add a custom unavailable timeframe if user has one and reduce karma points
-			if(!(empty($wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"])))
+			if(!(empty($wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"]))) { $placement_student[$placement_student_count] -> timeframes_unavailable[] = $wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"]; }
+			
+			// Experimental: Calculate timeframe karma by calculating Available Timeframes - Unavailable Timeframes 
+			$count_timeframes_unavailable = 0;
+			array_values($all_timeframes);
+			foreach($all_timeframes as $this_timeframe)
 			{
-				$placement_student[$placement_student_count] -> timeframes_unavailable[] = $wishlist["CUSTOM_TIMEFRAME_UNAVAILABLE"];
-				$placement_student[$placement_student_count] -> karma = ($placement_student[$placement_student_count] -> karma + get_DEDUCTION_CUSTOM_TIMEFRAME());
+				$check_this_timeframe = explode("::", $this_timeframe);
+				if(!(check_timeframes($check_this_timeframe[0], $check_this_timeframe[1], $placement_student[$placement_student_count]->timeframes_unavailable)))
+				{ $count_timeframes_unavailable++; }
 			}
+			// Final calculation: Caclulate Karma = Karma + (All Timeframes - Unavailable timeframes) - Unavailable timeframes (deduction value is negative)
+			$placement_student[$placement_student_count]->karma = $placement_student[$placement_student_count]->karma + ((count($all_timeframes) - $count_timeframes_unavailable) + ($count_timeframes_unavailable * get_DEDUCTION_SYSTEM_TIMEFRAME()));
 			$placement_student_count = $placement_student_count + 1;
 		}
 	}
@@ -745,7 +759,7 @@ function calculate_chunk($placement_student, $placements, $priority_types, $chun
 		}
 		
 		// Missing min_places
-		$i_missing_min_places_output = '<br /><br /><b><u>Warning:</u> Placements with unallocated minumum places:</b><br />';
+		$i_missing_min_places_output = '<br /><br /><b><u>Warning:</u> Placements with unallocated minimum places:</b><br />';
 		$i_missing_min_places = FALSE;
 		foreach($i_placements as $this_i_placement)
 		{    

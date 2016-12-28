@@ -44,8 +44,9 @@ $placements = get_placements($placement_table);
 $deployments = filter_deployments($placements);
 $deployment_placements = return_placement_deployments($deployments, $placements);
 $wishlist_table = set_priorities_special_deployments($deployment_placements, $wishlist_table, $priority_types);
+$all_timeframes = get_all_timeframes($placements);
 
-$placement_student = combine_wishlist_and_student_table($wishlist_table, $student_table);
+$placement_student = combine_wishlist_and_student_table($wishlist_table, $student_table, $all_timeframes);
 
 // insert JOKER at beginning of priority types array
 array_unshift($priority_types, "JOKER");
