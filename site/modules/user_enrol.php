@@ -1,6 +1,6 @@
 <?php
 
-$module_output = 'I am trying to enrol you for deployment ' . $_GET["id"] '...<br />';
+$module_output = 'I am trying to enrol you for deployment ' . $_GET["id"] . '...<br />';
 
 $this_student = fetch_student_by_login($_SERVER['PHP_AUTH_USER']);
 if(!($this_student === FALSE))
