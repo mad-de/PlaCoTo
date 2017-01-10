@@ -246,8 +246,7 @@ function combine_wishlist_and_student_table($wishlist_table, $student_table, $al
 				if(!(check_timeframes($check_this_timeframe[0], $check_this_timeframe[1], $placement_student[$placement_student_count]->timeframes_unavailable)))
 				{ $count_timeframes_unavailable++; }
 			}
-			// Final calculation: Caclulate Karma = Karma + (All Timeframes - Unavailable timeframes) - Unavailable timeframes (deduction value is negative)
-			$placement_student[$placement_student_count]->karma = $placement_student[$placement_student_count]->karma + ((count($all_timeframes) - $count_timeframes_unavailable) + ($count_timeframes_unavailable * get_DEDUCTION_SYSTEM_TIMEFRAME()));
+			$placement_student[$placement_student_count]->karma = $placement_student[$placement_student_count]->karma + (2 * $count_timeframes_unavailable / count($all_timeframes) * get_DEDUCTION_SYSTEM_TIMEFRAME());
 			$placement_student_count = $placement_student_count + 1;
 		}
 	}
