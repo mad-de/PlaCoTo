@@ -102,9 +102,14 @@ for ($input_count = 0; $input_count <= $_POST["total_num"]; $input_count++)
 	$new_student_table[$input_count] -> KARMA = $_POST[$input_count . "::karma"];
 	$new_student_table[$input_count] -> JOKER = $_POST[$input_count . "::joker"];
 	}
-$output_create_new_user = json_encode($new_student_table);
-
-file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'students.json', json_encode($new_student_table));
+	if(file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'students.json', json_encode($new_student_table)))
+	{
+		$output_create_new_user = 'Student table succesfully altered. <a href="admin.php?act=edit_users" />Back to overview</a>.';
+	}
+	else
+	{
+		$output_create_new_user = 'Error updating the database.';
+	}
 }
 elseif($_GET["step"] == "delete_user")
 {
