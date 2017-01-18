@@ -310,9 +310,10 @@ function filter_deployments($placements)
 	}
 	return $deployments;
 }
-function inform_students_via_email($students, $students_by_id, $placements, $placement_name, $report_file)
+function inform_students_via_email($students, $students_by_id, $placements, $placement_name, $placement_id, $fallback)
 {
 	// Prepare emails to inform students about the succesful calcluation
+    $report_file = 'reports' . DIRECTORY_SEPARATOR . 'report_' . $placement_id . '.html';
 	$emails_to_students = array();
 	$emails_to_students_counter = 0;
 	foreach($students as $this_email_student)
@@ -330,12 +331,24 @@ function inform_students_via_email($students, $students_by_id, $placements, $pla
 		$emails_to_students[$emails_to_students_counter]->message = $this_message;
 		$emails_to_students_counter++;
 	}	
-	if(add_emails($emails_to_students))
+	if($fallback)
 	{
-		print date('d.m.Y-H:i:s:', time()) . ' ' . count($emails_to_students) . ' Emails saved for sending.<br />';
-		return TRUE;
+		if(save_emails($emails_to_students, $placement_id))
+		{
+			print date('d.m.Y-H:i:s:', time()) . ' ' . count($emails_to_students) . ' Emails saved in calculation folder.<br />';
+			return TRUE;
+		}
+		else { return FALSE; }
 	}
-	else { return FALSE; }
+	else
+	{
+		if(add_emails($emails_to_students))
+		{
+			print date('d.m.Y-H:i:s:', time()) . ' ' . count($emails_to_students) . ' Emails saved for sending.<br />';
+			return TRUE;
+		}
+		else { return FALSE; }
+	}
 }
 function sort_students_by_id($student_table)
 {

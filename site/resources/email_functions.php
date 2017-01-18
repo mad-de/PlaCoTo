@@ -48,4 +48,9 @@ function add_emails($array)
 	{ foreach($array as $email) { $email_list[] = $email; } }
 	return file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'emails.json', json_encode($email_list));
 }
+function save_emails($array, $placement_id)
+{
+	foreach($array as $email) { $email_list[] = $email; }
+	return file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'calculation_' . $placement_id . DIRECTORY_SEPARATOR . 'emails.json', json_encode($email_list));
+}
 ?>
