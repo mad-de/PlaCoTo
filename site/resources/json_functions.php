@@ -57,6 +57,13 @@ class timeframe
 	var $end;
 }
 
+class pw_reset_table
+{
+	var $ID;
+	var $CODE;
+	var $TIMESTAMP;
+}
+
 // GENERAL JSON functions 
 function fetch_json_table($file)
 {
@@ -131,6 +138,36 @@ function fetch_student_by_login($student_login)
 		foreach($student_table as $this_table_student) 
 		{
 			if($this_table_student["LOGIN"] == $student_login)
+			{
+				$student = new db_students;
+				$student -> ID = $this_table_student["ID"];
+				$student -> NAME = $this_table_student["NAME"];
+				$student -> LOGIN = $this_table_student["LOGIN"];
+				$student -> PASSWORD = $this_table_student["PASSWORD"];
+				$student -> STATUS = $this_table_student["STATUS"];
+				$student -> GROUP = $this_table_student["GROUP"];
+				$student -> EMAIL = $this_table_student["EMAIL"];
+				$student -> KARMA = $this_table_student["KARMA"];	
+				$student -> JOKER = $this_table_student["JOKER"];	
+			}
+		}
+		if(isset($student)) { return $student; }
+		else { return FALSE; }
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+function fetch_student_by_id($student_id)
+{
+	$student_table = fetch_json_table('students.json');
+	if (!($student_table === FALSE))
+	{
+		foreach($student_table as $this_table_student) 
+		{
+			if($this_table_student["ID"] == $student_id)
 			{
 				$student = new db_students;
 				$student -> ID = $this_table_student["ID"];
@@ -528,4 +565,55 @@ function check_post_special_chars($input)
 	else { return false; }
 }
 
+// pw reset functions
+function identifier_matches($identfier)
+{
+	$students = fetch_students();
+	foreach($students as $student)
+	{
+		if ($student->LOGIN == $identfier || $student->EMAIL == $identfier)
+		{
+			return $student->ID; 
+		}
+	}
+	return false;
+}
+
+function fetch_reset_password_codes()
+{
+	$pw_resets_table = fetch_json_table('pw_resets.json');
+	if(!($pw_resets_table))
+	{ return false; } 
+	else 
+	{ 
+		$pw_reset_codes = array();
+		foreach($pw_resets_table as $this_pw_reset) 
+		{
+			$pw_reset_codes[$this_pw_reset["ID"]] = new pw_reset_table;
+			$pw_reset_codes[$this_pw_reset["ID"]] -> ID = $this_pw_reset["ID"];
+			$pw_reset_codes[$this_pw_reset["ID"]] -> CODE = $this_pw_reset["CODE"];
+			$pw_reset_codes[$this_pw_reset["ID"]] -> TIMESTAMP = $this_pw_reset["TIMESTAMP"];
+		}
+		return $pw_reset_codes; 
+	}
+}
+
+function insert_reset_password_code($user_id, $random_string)
+{
+	$pw_resets_table = fetch_reset_password_codes();
+	if(!($pw_resets_table))
+	{ 
+		$old_table = array(); 
+	}
+    else
+	{
+		$old_table = $pw_resets_table;
+	}
+	$new_table = $old_table;
+	$new_table[$user_id] = new pw_reset_table; 
+	$new_table[$user_id] -> ID = $user_id;
+	$new_table[$user_id] -> CODE = $random_string;
+	$new_table[$user_id] -> TIMESTAMP = time();
+	return (file_put_contents(get_DB_PATH() . DIRECTORY_SEPARATOR . 'pw_resets.json', json_encode($new_table)));
+}
 ?>

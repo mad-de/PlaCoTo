@@ -9,7 +9,8 @@ $html_output = <<< EOT
 <body>
 <div id="login">
 <a href="index.php?act=main">Login</a><br />
-<a href="index.php?act=register_user">Register</a>
+<a href="index.php?act=register_user">Register</a><br />
+<a href="index.php?act=reset_password">Forgot Password</a>
 </div>
 </body>
 EOT;

@@ -1,4 +1,10 @@
 <?php
+
+// PlaCoTo v. 0.3
+// Placement Coordination Tool
+// https://github.com/mad-de/PlaCoTo
+// License: LGPL 3.0
+
 $time_begin = microtime(true);
 if(isset($_GET["debug"]) || $DEBUG)
 {
@@ -15,6 +21,7 @@ $error = "";
 // info site without login credentials
 if(!(isset($_SERVER['PHP_AUTH_USER'])) && !(isset($_GET["act"]))) { include "modules/landing.php"; }
 elseif((isset($_GET["act"])) && ($_GET["act"] == "register_user")) { include "modules/user_register.php"; }
+elseif((isset($_GET["act"])) && ($_GET["act"] == "reset_password")) { include "modules/user_reset_password.php"; }
 else
 {
 	check_user_login(TRUE);
