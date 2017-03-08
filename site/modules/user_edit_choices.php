@@ -113,6 +113,8 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 			// Check if timestamp is already unavailable
 			$timeframe_count = 1;
 			$timeframes_output = "<b>Timeframes (unselect unavaliable ones):</b><br />";
+			$timeframes_check = 'onclick="if(';
+			
 			foreach($timeframes as $timeframe)
 			{
 				if(!(empty($user_wishes->TIMEFRAMES_UNAVAILABLE)) && in_array(german_date_to_timestamp($timeframe->begin) . '::' . german_date_to_timestamp($timeframe->end), $user_wishes->TIMEFRAMES_UNAVAILABLE))
@@ -124,10 +126,13 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 					$timeframes_checked = 'checked="checked"';
 				}
 				$timeframes_output .= '<input type="checkbox" name="TIMEFRAME_UNAVAILABLE_' . $timeframe_count . '" value="'. german_date_to_timestamp($timeframe->begin) . '::' . german_date_to_timestamp($timeframe->end) . '" ' . $timeframes_checked . '>' . $timeframe->begin . ' until ' . $timeframe->end . '<br />';
+				if(!($timeframe_count == 1)) { $timeframes_check .= ' && ';}
+				$timeframes_check .= '!this.form.TIMEFRAME_UNAVAILABLE_' . $timeframe_count . '.checked';
 				$timeframe_count++;
 			}
 			$timeframe_count--;
 			$timeframes_output .= '<input type="hidden" name="timeframe_count" value="' . $timeframe_count . '">';
+			$timeframes_check .= '){alert(\'You have unselected all timeframes. That sounds like a quite stupid idea as you would have no timeframes open to do your placement.\');return false}"';
 
 			if(!(empty($user_wishes->CUSTOM_TIMEFRAME_UNAVAILABLE)))
 			{
@@ -230,7 +235,7 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 				$priorities_output .= '<br />' . $location_options . '<br />';
 			}
 			$module_output .= '<form action="index.php?act=edit_choices&id=' . $_GET["id"] . '&submit=TRUE" method="POST" autocomplete="off"><input type="hidden" name="valid_request" value="TRUE">';
-			$module_output .= $timeframes_output . $custom_timeframe . $deployment_output . $priorities_output . '<div class="submit_div"><button type="submit">Submit</button></div>';
+			$module_output .= $timeframes_output . $custom_timeframe . $deployment_output . $priorities_output . '<div class="submit_div" ><button type="submit" ' . $timeframes_check . '>Submit</button></div>';
 		}
 	}
 	else
