@@ -1,3 +1,4 @@
+@@ -1,901 +1,9 @@
 <?php
 
 // load functions and classes
@@ -361,7 +362,7 @@ function set_priorities_special_deployments($deployment_placements, $placement_s
 {
 	foreach($deployment_placements as $deployment_placement => $value)
 	{
-		if(count($value->placements) == 1)
+		if((count($value->placements) == 1) && !(get_SINGLE_CHOICE_WEIGHTED_MODE()))
 		{
 			foreach($placement_student as &$current_student)
 			{
@@ -897,5 +898,4 @@ function check_chunks($multiplied_iteration)
 	usort($multiplied_iteration, "sort_by_happiness");
 	return $multiplied_iteration[0];
 }
-
 ?>
