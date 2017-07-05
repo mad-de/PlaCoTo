@@ -19,11 +19,11 @@ foreach($placements as $act => $placement)
 		}
 		elseif(!(fetch_user_wishes($this_student->ID, $placement->ID) === FALSE))
 		{
-			$module_output .= '( <a href="index.php?act=edit_choices&id=' . $placement->ID . '">EDIT CHOICES</a> | <a href="#" onClick="MyWindow=window.open(' . "'http://"  . $_SERVER['HTTP_HOST'] . '/index.php?act=show_wishes&id=' . $placement->ID . "','MyWindow',width=350,height=500); return false;" . '">Total wishes</a> )<br />';		
+			$module_output .= '( <a href="index.php?act=edit_choices&id=' . $placement->ID . '">EDIT CHOICES</a> | <a href="#" onClick="MyWindow=window.open(' . "'" . get_WEBSITE_URL() . 'index.php?act=show_wishes&id=' . $placement->ID . "','MyWindow',width=350,height=500); return false;" . '">Total wishes</a> )<br />';		
 		}
 		else
 		{
-			 $module_output .= '( <a href="index.php?act=enrol&id=' . $placement->ID . '">ENROL</a> | <a href="#" onClick="MyWindow=window.open(' . "'http://"  . $_SERVER['HTTP_HOST'] . '/index.php?act=show_wishes&id=' . $placement->ID . "','MyWindow',width=350,height=500); return false;" . '">Total wishes</a> )<br />';
+			 $module_output .= '( <a href="index.php?act=enrol&id=' . $placement->ID . '">ENROL</a> | <a href="#" onClick="MyWindow=window.open(' . "'" . get_WEBSITE_URL() . '/index.php?act=show_wishes&id=' . $placement->ID . "','MyWindow',width=350,height=500); return false;" . '">Total wishes</a> )<br />';
 		}
 	}
 }

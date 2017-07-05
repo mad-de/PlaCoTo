@@ -109,7 +109,7 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 		// Choices Output 
 		else
 		{
-			$module_output .= '<div class="launch_wishes"><a href="#" onClick="MyWindow=window.open(' . "'http://"  . $_SERVER['HTTP_HOST'] . '/index.php?act=show_wishes&id=' . $_GET["id"] . "','MyWindow',width=350,height=500); return false;" . '">See total wishes</a></div>';
+			$module_output .= '<div class="launch_wishes"><a href="#" onClick="MyWindow=window.open(' . "'" . get_WEBSITE_URL() . 'index.php?act=show_wishes&id=' . $_GET["id"] . "','MyWindow',width=350,height=500); return false;" . '">See total wishes</a></div>';
 			// Check if timestamp is already unavailable
 			$timeframe_count = 1;
 			$timeframes_output = "<b>Timeframes (unselect unavaliable ones):</b><br />";

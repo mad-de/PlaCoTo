@@ -18,7 +18,7 @@ foreach($placement_list as $placement)
 		$groups_active = explode(";", $placement->GROUPS);
 		$placement_name = $placement->NAME;
 		$placement_due_date = $placement->DUE_DATE;
-		$link = 'http://' . $_SERVER['HTTP_HOST'] . '/index.php?act=enrol&id=' . $_GET["id"];
+		$link = get_WEBSITE_URL() . 'index.php?act=enrol&id=' . $_GET["id"];
 	}
 }
 if($triggered === TRUE)

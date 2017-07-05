@@ -7,7 +7,7 @@ $this_karma = $this_user->KARMA;
 $this_joker = $this_user->JOKER;
 if($this_user->STATUS == "ADMIN")
 { $admin_link = ' | <a href="admin.php" target="_blank">AdminCP</a>'; }
-$logout_link = '<a href="http://log:out@' . get_WEBSITE_URL() . '/">Logout</a>';
+$logout_link = '<a href="http://log:out@' . $_SERVER['HTTP_HOST'] . '/">Logout</a>';
 $title = '<title>' . get_WEBSITE_NAME() . '</title>';
 if(isset($_GET["act"]) && $_GET["act"] == "show_wishes")
 { $header = ''; }
@@ -15,7 +15,7 @@ else
 {
 	$header = <<< EOT
 	<div id="head">
-	<a href="index.php"><img class="home_button" src="/images/home.svg" alt="home" ></a> <b>{$this_username}</b> ({$logout_link}{$admin_link})
+	<a href="index.php"><img class="home_button" src="images/home.svg" alt="home" ></a> <b>{$this_username}</b> ({$logout_link}{$admin_link})
 	<span class="stats">Karma: {$this_karma} Joker: {$this_joker}</span></div>
 EOT;
 }

@@ -63,7 +63,7 @@ $result_table->report_output .= '<br /><br />Step 4: Find chunk with highest hap
 $students_by_id = sort_students_by_id($student_table);
 $result_table->placements = replace_id_with_name($result_table->placements, $students_by_id);
 
-$result_table->report_output .= '<br /><br />Step 5: I will upload the calculated placements file for your convenience: <a href="http://' . $_SERVER['HTTP_HOST'] . '/index.php?act=data_export&id=' . $placement_id . '">Download xls</a>';
+$result_table->report_output .= '<br /><br />Step 5: I will upload the calculated placements file for your convenience: <a href="' . get_WEBSITE_URL() . 'index.php?act=data_export&id=' . $placement_id . '">Download xls</a>';
 insert_calculation_file($placement_id, "placements", $result_table) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the placement file. :(";
 // Insert Joker and Karma + Joker values into students table
 foreach($result_table->students as $this_student)
@@ -84,7 +84,7 @@ else
 	$result_table->report_output .= "<br />There were errors while calculating. I will save a copy of the calculated students table in the calculation folder without replacing the stundents database.<br />";
 	print date('d.m.Y-H:i:s:', time()) . " Errors calculating - Sending emails to admins<br />";
 	insert_calculation_file($placement_id, "students_new", $students_by_id) or $result_table->report_output .= "<br /><b>HOOOMANZ!</b> I haven`t been able to upload the students file. :("; 
-	send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/' . 'reports' . DIRECTORY_SEPARATOR . 'report_' . $placement_id . '.html' . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
+	send_admin_email("There were errors calculating " . $placement_name , 'Dear Admin,<br /><br />I was unable to calculate a good table for the students. <br />Check the calculation:<br /><a href="' . get_WEBSITE_URL() . 'reports' . DIRECTORY_SEPARATOR . 'report_' . $placement_id . '.html' . '">Report</a><br /><br />Current report:<br />' . $result_table->report_output);
 	inform_students_via_email($result_table->students, $students_by_id, $result_table->placements, $placement_name, $placement_id, TRUE) or $result_table->report_output .= " ERROR saving emails in folder."; 
 }			
 

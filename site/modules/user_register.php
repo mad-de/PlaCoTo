@@ -112,7 +112,7 @@ elseif($_GET["step"] == "submit")
 				// send emails to admins
 				$groups = fetch_groups();
 				foreach($groups as $current_group) { if($current_group->ID  == $_POST["group"]) { $group_name = $current_group->NAME; } }
-				$message = "Dear Admin,<br /><br />we have a new registration: <br />Name: " . $_POST["name"] . "<br />Email: " . $_POST["email"] . "<br />Group applied to: " . $group_name .  '<br /><br /><a href="http://' . $_SERVER['HTTP_HOST'] . '/admin.php?act=activate_user&id=' . $new_id . '">Activate user</a>';
+				$message = "Dear Admin,<br /><br />we have a new registration: <br />Name: " . $_POST["name"] . "<br />Email: " . $_POST["email"] . "<br />Group applied to: " . $group_name .  '<br /><br /><a href="' . get_WEBSITE_URL() . 'admin.php?act=activate_user&id=' . $new_id . '">Activate user</a>';
 				send_admin_email("Please verify registration of user " . $_POST["name"] , $message);
 			}
 			else

@@ -62,7 +62,7 @@ elseif($_GET["step"] == "submit")
 				$user_id = identifier_matches($_POST["identifier"]);
 				if(insert_reset_password_code($user_id, $code_string))
 				{
-					$code_link = 'http://' . $_SERVER['HTTP_HOST'] . '/index.php?act=reset_password&step=reset&code=' . $code_string;
+					$code_link = get_WEBSITE_URL() . 'index.php?act=reset_password&step=reset&code=' . $code_string;
 					$email_output = 'Hello, a password reset was requested. If this has been you, please click <a href="' . $code_link . '">here</a> or paste this into your browsers adress bar: ' . $code_link . '<br /><br />This code will be valid for ' . ($time_to_reset / 60) . ' minutes.';
 					if(send_email(fetch_student_by_id($user_id)->EMAIL, "Reset password", $email_output))
 					{ $output_reset_password .= " Check your emails to reset your password. You have got " . ($time_to_reset / 60) . " minutes time to reset the password."; }
@@ -129,7 +129,7 @@ elseif($_GET["step"] == "reset")
 							{
 								$output_reset_password = "A new password has been sent to your email adress.";
 								// Email stuff
-								$message = 'Hello ' . $this_table_student["NAME"] . '<br /><br />Your new password is: '. $new_password . '<br />Your login (just in case you forgot) is: ' . $this_table_student["LOGIN"] . '<br /><a href="http://' . $_SERVER['HTTP_HOST'] . '">Login right away</a>.';
+								$message = 'Hello ' . $this_table_student["NAME"] . '<br /><br />Your new password is: '. $new_password . '<br />Your login (just in case you forgot) is: ' . $this_table_student["LOGIN"] . '<br /><a href="' . get_WEBSITE_URL() . '">Login right away</a>.';
 								send_email($this_table_student["EMAIL"], "Your password has been reset" , $message);	
 							}
 							else { $error = "Updating the database did not work."; }

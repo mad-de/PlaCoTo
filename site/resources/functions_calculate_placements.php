@@ -327,7 +327,7 @@ function inform_students_via_email($students, $students_by_id, $placements, $pla
 			if(in_array($students_by_id[$this_email_student->id]["NAME"], $this_placement->students_alloc))		
 			{ $this_message .= "<br />You were allocated to " . $this_placement->name . " from " . timestamp_to_german_date($this_placement->timeframe_begin) . " - " . timestamp_to_german_date($this_placement->timeframe_end);} 
 		}	
-	$this_message .= '<br /><br />Your new karma is: ' . $students_by_id[$this_email_student->id]["KARMA"] . '<br />How was this calculated? Take a look at the <a href="http://' . $_SERVER['HTTP_HOST'] . '/' . $report_file . '">Report</a>. Your ID is ' . $this_email_student->id;
+	$this_message .= '<br /><br />Your new karma is: ' . $students_by_id[$this_email_student->id]["KARMA"] . '<br />How was this calculated? Take a look at the <a href="' . get_WEBSITE_URL() . $report_file . '">Report</a>. Your ID is ' . $this_email_student->id;
 		$emails_to_students[$emails_to_students_counter]->message = $this_message;
 		$emails_to_students_counter++;
 	}	
