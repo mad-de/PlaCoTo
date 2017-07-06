@@ -35,6 +35,7 @@ define ("EMAIL_SPECIAL_CHARS", serialize(array('@', '.', '_', '-')));
 define ("PLACEMENT_SPECIAL_CHARS", serialize(array(' ', '.', '_', '-', '(', ')', ':', 'Ä', 'ä', 'Ü', 'ü', 'Ö', 'ö', 'ß', '/')));
 
 $DEBUG = FALSE;
+$FORCE_SSL = FALSE;
 
 $priority_types = array(1 => "PRIORITY 1", 2 => "PRIORITY 2", 3 => "PRIORITY 3");
 define ("PRIORITIES_AFFECTING_KARMA", serialize(array('0', '1')));

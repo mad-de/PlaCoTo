@@ -6,15 +6,29 @@
 // License: LGPL 3.0
 
 $time_begin = microtime(true);
+
+include "config.php";
+include "resources/json_functions.php";
+include "resources/auth.php";
+
 if(isset($_GET["debug"]) || $DEBUG)
 {
 	// Set Debugging Level
 	ini_set('display_errors', 'On');
 	error_reporting(E_ALL | E_STRICT); 
 }
-include "config.php";
-include "resources/json_functions.php";
-include "resources/auth.php";
+
+if ($FORCE_SSL && !isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+    if(!headers_sent()) {
+        header("Status: 301 Moved Permanently");
+        header(sprintf(
+            'Location: https://%s%s',
+            $_SERVER['HTTP_HOST'],
+            $_SERVER['REQUEST_URI']
+        ));
+        exit();
+    }
+}
 
 $error = "";
 

@@ -16,7 +16,8 @@ $this_student = fetch_student_by_login($_SERVER['PHP_AUTH_USER']);
 if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 {	
 	$placements = fetch_placements($_GET["id"]);
-	$timeframes = calculate_timeframes($placements);
+	// New timeframe viewing method
+	$timeframes = calculate_timeframe_choices($placements);
 	$deployments = fetch_placement_item($_GET["id"], "DEPLOYMENT");
 	$user_wishes = fetch_user_wishes($this_student->ID, $_GET["id"]);
 	if(!($user_wishes === FALSE))
@@ -110,6 +111,7 @@ if(check_for_placement_validity($_GET["id"], $this_student->GROUP))
 		else
 		{
 			$module_output .= '<div class="launch_wishes"><a href="#" onClick="MyWindow=window.open(' . "'" . get_WEBSITE_URL() . 'index.php?act=show_wishes&id=' . $_GET["id"] . "','MyWindow',width=350,height=500); return false;" . '">See total wishes</a></div>';
+
 			// Check if timestamp is already unavailable
 			$timeframe_count = 1;
 			$timeframes_output = "<b>Timeframes (unselect unavaliable ones):</b><br />";
