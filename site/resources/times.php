@@ -67,11 +67,17 @@ function calculate_timeframe_choices($placements)
 		if(empty($timepoints) || !in_array($placement->TIMEFRAME_BEGIN, $timepoints)) { $timepoints[] = $placement->TIMEFRAME_BEGIN;}
 		if(!in_array($placement->TIMEFRAME_END, $timepoints)) { $timepoints[] = $placement->TIMEFRAME_END;}
 	}
-	natsort($timepoints);
 	$count_timepoints = count($timepoints);
 	$i = 0;
 	$setback_counter = 0;
 	$timeframe_count = 0;
+	asort($timepoints);
+	//weird php bug makes switch to date format necessary. Whoever can tell me how that is get's a beer.
+	$dates = array();
+	foreach($timepoints as $timepoint)
+	{
+		$dates[] = date('d.m.Y', $timepoint);
+	}
 	while($count_timepoints > $i)
 	{
 		if($setback_counter == 0)
@@ -79,19 +85,45 @@ function calculate_timeframe_choices($placements)
 			$timeframe_count++;
 			$setback_counter++;
 			$timeframes[$timeframe_count] = new timeframe;
-			$timeframes[$timeframe_count] -> begin = date('d.m.Y', $timepoints[$i]);
+			if(date("w", german_date_to_timestamp($dates[$i])) == 5)
+			{
+				$timeframes[$timeframe_count] -> begin = date('d.m.Y', strtotime(date('d.m.Y', german_date_to_timestamp($dates[$i])) . ' - 4 days'));
+				$i--;
+			}
+			else
+			{
+				$timeframes[$timeframe_count] -> begin = $dates[$i];				
+			}
+
 		}
 		else
 		{
-			while($timepoints[$i] < strtotime($timeframes[$timeframe_count]->begin . ' + 4 days'))
+			while(german_date_to_timestamp($dates[$i]) < strtotime($timeframes[$timeframe_count]->begin . ' + 2 days') && $i < $count_timepoints)
 			{
 				$i++;
 			}
-			if(isset($timepoints[$i]))
+			if(isset($dates[$i]))
 			{
-				$timeframes[$timeframe_count] -> end = date('d.m.Y', $timepoints[$i]);	
+				$tgif = 0;
+				// Check if date is friday, otherwise make it friday	
+				while(!((date("w", german_date_to_timestamp($dates[$i]))-$tgif) == 5 ) && !((date("w", german_date_to_timestamp($dates[$i]))-$tgif) == -2))
+				{
+					$tgif++;
+				}
+				
+				$timeframes[$timeframe_count] -> end = date('d.m.Y', strtotime(date('d.m.Y', german_date_to_timestamp($dates[$i])) . ' - ' . $tgif . ' days'));
+				
 			}
 			$setback_counter = 0;
+			// was it a monday, that has been transformed to friday? reduce counter then... 
+			if(date("w", german_date_to_timestamp($dates[$i])) == 1 && !((date("w", german_date_to_timestamp($dates[$i]))-$tgif) == (date("w", german_date_to_timestamp($dates[$i])))))
+			{
+				$i--;
+			}				
+		}
+		if($timeframes[$timeframe_count] -> end == $timeframes[$timeframe_count] -> begin)
+		{
+			$timeframes[$timeframe_count] -> end = date('d.m.Y', strtotime($timeframes[$timeframe_count]->begin . ' + 5 days'));
 		}
 		$i++;
 	}
