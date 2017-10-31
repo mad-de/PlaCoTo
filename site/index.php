@@ -18,7 +18,7 @@ if(isset($_GET["debug"]) || $DEBUG)
 	error_reporting(E_ALL | E_STRICT); 
 }
 
-if ($FORCE_SSL && !isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+if (!isset($_SERVER['HTTPS']) && ($FORCE_SSL && $_SERVER['HTTPS'] !== 'on')) {
     if(!headers_sent()) {
         header("Status: 301 Moved Permanently");
         header(sprintf(
